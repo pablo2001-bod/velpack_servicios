@@ -1,0 +1,178 @@
+<div class="sidebar">
+
+    <div class="logo">
+
+        <h2>VELPACK</h2>
+
+        <p>Ideas Ecológicamente<br>Reciclables</p>
+
+    </div>
+
+    <div class="menu">
+
+        <ul>
+
+           <li>
+                <a href="{% url 'dashboard:inicio' %}" class="{% if request.path == '/' or 'inicio' in request.path %}active{% endif %}">
+                    <i class="bi bi-house-door-fill"></i>
+                    Inicio
+                </a>
+            </li>
+
+            <li>
+                <!-- Menú Desplegable Producción -->
+                <a href="#submenuProduccion"
+                   data-bs-toggle="collapse"
+                   class="{% if 'produccion' in request.path %}active{% endif %}">
+
+                    <i class="bi bi-box-seam"></i>
+
+                    Producción
+
+                    <span class="float-end">
+
+                        <i class="bi bi-chevron-down"></i>
+
+                    </span>
+
+                </a>
+
+                <div
+                    class="collapse {% if 'produccion' in request.path %}show{% endif %} submenu"
+                    id="submenuProduccion">
+
+                    <a href="{% url 'produccion:registrar' %}" 
+                       class="{% if '/produccion/registrar/' in request.path %}fw-bold text-success{% endif %}">
+                        Registrar Producción
+                    </a>
+
+                    <a href="{% url 'produccion:lista' %}"
+                       class="{% if '/produccion/lista/' in request.path %}fw-bold text-success{% endif %}">
+                        Ver Pacas
+                    </a>
+
+                    <a href="{% url 'produccion:buscar_codigo' %}"
+                       class="{% if '/produccion/buscar/' in request.path %}fw-bold text-success{% endif %}">
+                        Buscar Código
+                    </a>
+
+                </div>
+
+            </li>
+
+            <!-- Menú Entidades (Agrupado) -->
+            <li>
+                <a href="#submenuEntidades"
+                data-bs-toggle="collapse"
+                class="{% if 'clientes' in request.path or 'proveedores' in request.path and 'ingresos' not in request.path or 'transportes' in request.path %}active{% endif %}">
+                    
+                    <i class="bi bi-people-fill"></i>
+                    Entidades
+                    <span class="float-end">
+                        <i class="bi bi-chevron-down"></i>
+                    </span>
+                </a>
+
+                <div class="collapse {% if 'clientes' in request.path or 'proveedores' in request.path and 'ingresos' not in request.path or 'transportes' in request.path %}show{% endif %} submenu"
+                    id="submenuEntidades">
+
+                    <a href="{% url 'clientes:lista_clientes' %}"
+                    class="{% if '/clientes/' in request.path %}fw-bold text-success{% endif %}">
+                        Clientes
+                    </a>
+
+                    <a href="{% url 'proveedores:lista_proveedores' %}"
+                    class="{% if '/proveedores/' in request.path and 'ingresos' not in request.path %}fw-bold text-success{% endif %}">
+                        Proveedores
+                    </a>
+
+                    <a href="{% url 'transportes:lista_transportes' %}"
+                    class="{% if '/transportes/' in request.path %}fw-bold text-success{% endif %}">
+                        Transportes
+                    </a>
+                </div>
+            </li>
+            <li>
+
+                <a href="{% url 'proveedores:lista_ingresos' %}" class="{% if 'ingresos' in request.path %}active{% endif %}">
+
+                    <i class="bi bi-boxes"></i>
+
+                    Materia Prima
+
+                </a>
+
+            </li>
+            <li>
+
+                <a href="{% url 'inventario:dashboard' %}" class="{% if 'inventario' in request.path %}active{% endif %}">
+
+                    <i class="bi bi-boxes"></i>
+
+                    Inventario
+
+                </a>
+            </li>
+
+            <li>
+
+                <a href="{% url 'ventas:lista_ventas' %}" class="{% if 'ventas' in request.path %}active{% endif %}">
+
+                    <i class="bi bi-cash-stack"></i>
+
+                    Ventas
+
+                </a>
+
+            </li>
+
+            <li>
+
+                <a href="{% url 'despachos:lista' %}" class="{% if 'despachos' in request.path %}active{% endif %}">
+
+                    <i class="bi bi-truck-flatbed"></i>
+
+                    Despachos
+
+                </a>
+
+            </li>
+
+            <li>
+
+                <a href="{% url 'reportes:panel' %}" class="{% if 'reportes' in request.path %}active{% endif %}">
+
+                    <i class="bi bi-file-earmark-bar-graph"></i>
+
+                    Reportes
+
+                </a>
+
+            </li>
+
+            <li>
+                <a href="{% url 'lista_usuarios' %}">
+                    <i class="bi bi-person-gear"></i>
+                    Usuarios
+                </a>
+            </li>
+
+            <hr class="text-light">
+
+            <li>
+
+                <a href="{% url 'logout' %}" class="text-read">
+
+                    <i class="bi bi-box-arrow-right"></i>
+
+                    Cerrar Sesión
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    </div>
+
+</div>

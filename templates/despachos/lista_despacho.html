@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary fw-bold">Despachos</h2>
+        <a href="{% url 'despachos:crear' %}" class="btn btn-primary shadow-sm">
+            <i class="fas fa-plus-circle me-1"></i> Nueva Guía
+        </a>
+    </div>
+
+    <form method="GET" action="{% url 'despachos:lista' %}" class="mb-4">
+        <div class="input-group shadow-sm">
+            <input type="text" name="q" class="form-control" placeholder="Buscar por RUC o Cédula..." value="{{ query }}">
+            <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+        </div>
+    </form>
+
+    <ul class="nav nav-tabs nav-justified" id="myTab" role="tablist">
+        <li class="nav-item"><button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#pendientes">Pendientes</button></li>
+        <li class="nav-item"><button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#entregados">Entregados</button></li>
+    </ul>
+
+    <div class="tab-content pt-3 bg-white p-3 shadow-sm rounded-bottom">
+        <!-- Pestaña Pendientes -->
+        <div class="tab-pane fade show active" id="pendientes">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N° Guía</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Transporte</th>
+                            <th>Productos / Variedad</th>
+                            <th>Total ($$)</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in pendientes %}
+                        <tr>
+                            <td class="fw-bold">{{ d.numero_guia }}</td>
+                            <td>{{ d.fecha|date:"d/m/Y" }}</td>
+                            <td>{{ d.cliente.nombre }} ({{ d.cliente.ruc }})</td>
+                            <td>{{ d.transporte }}</td>
+                            <td>
+                                <ul class="list-unstyled mb-0">
+                                    {% for det in d.detalles.all %}
+                                        <li>{{ det.variedad.nombre }} - {{ det.color.nombre }} <span class="badge bg-secondary">{{ det.cantidad }}</span></li>
+                                    {% empty %}
+                                        <li class="text-muted">Sin detalles</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td class="fw-bold text-success">
+                                ${{ d.obtener_total }}
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'despachos:editar' d.id %}" class="btn btn-sm btn-outline-warning" title="Aplazar / Editar"><i class="fas fa-edit"></i> Aplazar</a>
+                                <a href="{% url 'despachos:entregar' d.id %}" class="btn btn-sm btn-outline-success" title="Marcar Entregado"><i class="fas fa-check-circle"></i> Entregar</a>
+                                <a href="{% url 'despachos:ver' d.id %}" class="btn btn-sm btn-outline-info" title="Imprimir / Ver"><i class="fas fa-print"></i> Imprimir</a>                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center text-muted">No hay despachos pendientes.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pestaña Entregados -->
+        <div class="tab-pane fade" id="entregados">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N° Guía</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Transporte</th>
+                            <th>Productos / Variedad</th>
+                            <th class="text-center">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in entregados %}
+                        <tr>
+                            <td class="fw-bold">{{ d.numero_guia }}</td>
+                            <td>{{ d.fecha|date:"d/m/Y" }}</td>
+                            <td>{{ d.cliente.nombre }} ({{ d.cliente.ruc }})</td>
+                            <td>{{ d.transporte }}</td>
+                            <td>
+                                <ul class="list-unstyled mb-0">
+                                    {% for det in d.detalles.all %}
+                                        <li>{{ det.variedad.nombre }} - {{ det.color.nombre }} <span class="badge bg-secondary">{{ det.cantidad }}</span></li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
+                            <td class="text-center">
+                                <a href="{% url 'despachos:ver' d.id %}" class="btn btn-sm btn-outline-info" title="Ver Guía"><i class="fas fa-eye"></i> Ver Guía</a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted">No hay registros de entregas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

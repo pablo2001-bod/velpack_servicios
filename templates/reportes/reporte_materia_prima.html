@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <a href="{% url 'reportes:panel' %}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="bi bi-arrow-left me-1"></i> Volver al Panel
+                </a>
+                <h5 class="mb-0 fw-bold text-dark">
+                    <i class="bi bi-truck-loading me-2 text-success"></i> Reporte de Ingreso de Materia Prima
+                </h5>
+            </div>
+            <div>
+                <a href="{% url 'reportes:exportar_materia_prima_excel' %}" class="btn btn-success btn-sm">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Descargar Excel
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Tarjeta con el Total Acumulado -->
+            <div class="alert alert-success d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <span class="fw-bold">Total General de Materia Prima Ingresada:</span>
+                </div>
+                <div class="fs-4 fw-bold">
+                    {{ total_kg|floatformat:2 }} Kg
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Proveedor</th>
+                            <th>RUC</th>
+                            <th>Tipo de Material</th>
+                            <th>Cantidad / Unidades</th>
+                            <th>Peso Neto Total (Kg)</th>
+                            <th>Observaciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in ingresos %}
+                        <tr>
+                            <td>{{ item.fecha }}</td>
+                            <td class="fw-bold">{{ item.proveedor.nombre }}</td>
+                            <td>{{ item.proveedor.ruc }}</td>
+                            <td>
+                                <span class="badge bg-secondary">{{ item.get_tipo_material_display }}</span>
+                            </td>
+                            <td>{{ item.cantidad }}</td>
+                            <td class="text-success fw-bold">{{ item.peso_neto }} Kg</td>
+                            <td>{{ item.observacion|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                No hay registros de materia prima para mostrar.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

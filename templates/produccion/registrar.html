@@ -1,0 +1,378 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Registrar Producción
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="box">
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+
+            <div>
+
+                <h3 class="fw-bold mb-1">
+                    Registrar Producción
+                </h3>
+
+                <small class="text-muted">
+                    Registrar.
+                </small>
+
+            </div>
+
+        </div>
+
+        <form method="POST" id="form-produccion" autocomplete="off">
+
+            {% csrf_token %}
+
+            <div class="row g-3">
+
+                <!-- Campo de Fecha Automática (Solo lectura) -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        Fecha de Registro
+                    </label>
+                    <input 
+                        type="date" 
+                        class="form-control bg-light" 
+                        value="{{ fecha_hoy }}" 
+                        disabled>
+                    <small class="text-muted">Fecha.</small>
+                </div>
+
+                <!-- Selector de Operador -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        Operador
+                    </label>
+                    <select name="operador" class="form-select" required>
+                        <option value="" disabled selected>Seleccione un operador...</option>
+                        {% for op in operadores %}
+                            <option value="{{ op.id }}">{{ op.nombre_completo }} ({{ op.obtener_iniciales }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- NUEVO: Selector de Turno Manual -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        Turno de Trabajo
+                    </label>
+                    <select name="turno" class="form-select" required>
+                        <option value="" disabled selected>Seleccione el turno...</option>
+                        {% for turno in turnos %}
+                            <option value="{{ turno.id }}">{{ turno.nombre }} ({{ turno.hora_inicio|time:"H:i" }} - {{ turno.hora_fin|time:"H:i" }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Observación -->
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">
+                        Observación
+                    </label>
+                    {{ form.observacion }}
+                </div>
+
+            </div>
+
+            <hr class="my-4">
+
+            <div class="d-flex justify-content-between align-items-center mb-3">
+
+                <h5 class="fw-bold mb-0">
+
+                    Detalles de Producción
+
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    id="btn-agregar-fila">
+
+                    + Agregar Modelo / Color
+
+                </button>
+
+            </div>
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle" id="tabla-detalles">
+
+                    <thead class="table-success">
+
+                        <tr>
+
+                            <th width="35%">
+                                Modelo
+                            </th>
+
+                            <th width="35%">
+                                Color
+                            </th>
+
+                            <th width="20%">
+                                Cantidad
+                            </th>
+
+                            <th width="10%" class="text-center">
+                                Acción
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="contenedor-filas">
+
+                        <tr class="fila-detalle">
+
+                            <td>
+                                <select name="producto[]" class="form-select select-producto" required>
+                                    <option value="">Seleccione un modelo...</option>
+                                    {% for prod in productos %}
+                                        <option value="{{ prod.id }}">{{ prod.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+
+                            <td>
+                                <select name="color[]" class="form-select select-color" required>
+                                    <option value="">Seleccione un color...</option>
+                                    {% for col in colores %}
+                                        <option value="{{ col.id }}">{{ col.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+
+                            <td>
+
+                                <input
+                                    type="number"
+                                    class="form-control input-cantidad"
+                                    name="cantidad_pacas[]"
+                                    value="1"
+                                    min="1"
+                                    required>
+
+                            </td>
+
+                            <td class="text-center">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-danger btn-eliminar"
+                                    disabled>
+
+                                    ✖
+
+                                </button>
+
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="row mt-4">
+
+                <div class="col-md-5 ms-auto">
+
+                    <div class="card shadow-sm">
+
+                        <div class="card-header bg-success text-white">
+
+                            <strong>
+
+                                Resumen de Producción
+
+                            </strong>
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div id="lista-totales">
+
+                                <p class="text-muted mb-0">
+
+                                    Aún no existen cantidades registradas.
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <hr class="my-4">
+
+
+            <div class="d-flex gap-2">
+
+                <button
+                    type="submit"
+                    class="btn btn-success">
+
+                    Guardar Producción
+
+                </button>
+
+                <a
+                    href="{% url 'produccion:lista' %}"
+                    class="btn btn-secondary">
+
+                    Cancelar
+
+                </a>
+
+            </div>
+
+        </form> <!-- <--- ¡ESTA ETIQUETA DEBE ESTAR AQUÍ! -->
+
+    </div>
+
+</div>
+
+<!-- Lógica dinámica para la tabla y resumen de producción -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const contenedorFilas = document.getElementById("contenedor-filas");
+    const btnAgregarFila = document.getElementById("btn-agregar-fila");
+    const listaTotales = document.getElementById("lista-totales");
+
+    // Guardamos un clon limpio de la primera fila como plantilla estructural
+    const filaModelo = contenedorFilas.querySelector(".fila-detalle").cloneNode(true);
+    
+    // Limpiamos los campos del clon
+    filaModelo.querySelector(".select-producto").value = "";
+    filaModelo.querySelector(".select-color").value = "";
+    filaModelo.querySelector(".input-cantidad").value = "1";
+    
+    // Habilitamos el botón de eliminar en los clones
+    const btnEliminarClon = filaModelo.querySelector(".btn-eliminar");
+    if (btnEliminarClon) {
+        btnEliminarClon.removeAttribute("disabled");
+    }
+
+    // Función para actualizar los estados de los botones de eliminar
+    function actualizarBotonesEliminar() {
+        const filas = contenedorFilas.querySelectorAll(".fila-detalle");
+        filas.forEach(fila => {
+            const btn = fila.querySelector(".btn-eliminar");
+            if (filas.length === 1) {
+                btn.setAttribute("disabled", "true");
+            } else {
+                btn.removeAttribute("disabled");
+            }
+        });
+    }
+
+    // Evento para agregar fila
+    btnAgregarFila.addEventListener("click", function () {
+        const nuevaFila = filaModelo.cloneNode(true);
+        contenedorFilas.appendChild(nuevaFila);
+        actualizarBotonesEliminar();
+        actualizarResumen();
+    });
+
+    // Evento delegado para eliminar fila
+    contenedorFilas.addEventListener("click", function (e) {
+        const btn = e.target.closest(".btn-eliminar");
+        if (btn) {
+            const filas = contenedorFilas.querySelectorAll(".fila-detalle");
+            if (filas.length > 1) {
+                btn.closest(".fila-detalle").remove();
+                actualizarBotonesEliminar();
+                actualizarResumen();
+            }
+        }
+    });
+
+    // Eventos delegados para actualizar el resumen al cambiar inputs
+    contenedorFilas.addEventListener("change", function (e) {
+        if (e.target.classList.contains("select-producto") || 
+            e.target.classList.contains("select-color") || 
+            e.target.classList.contains("input-cantidad")) {
+            actualizarResumen();
+        }
+    });
+
+    contenedorFilas.addEventListener("input", function (e) {
+        if (e.target.classList.contains("input-cantidad")) {
+            actualizarResumen();
+        }
+    });
+
+    // Función para construir la lista del resumen de producción acumulado
+    function actualizarResumen() {
+        const filas = contenedorFilas.querySelectorAll(".fila-detalle");
+        const acumulado = {};
+        let totalGeneral = 0;
+
+        filas.forEach(fila => {
+            const prodSelect = fila.querySelector(".select-producto");
+            const colSelect = fila.querySelector(".select-color");
+            const cantInput = fila.querySelector(".input-cantidad");
+
+            const prodId = prodSelect.value;
+            const colId = colSelect.value;
+            const cantidad = parseInt(cantInput.value) || 0;
+
+            if (prodId && colId && cantidad > 0) {
+                const prodTxt = prodSelect.options[prodSelect.selectedIndex].text;
+                const colTxt = colSelect.options[colSelect.selectedIndex].text;
+                const clave = `${prodTxt} - ${colTxt}`;
+
+                acumulado[clave] = (acumulado[clave] || 0) + cantidad;
+                totalGeneral += cantidad;
+            }
+        });
+
+        // Limpiar el contenedor del resumen
+        listaTotales.innerHTML = "";
+
+        if (Object.keys(acumulado).length === 0) {
+            listaTotales.innerHTML = `<p class="text-muted mb-0">Aún no existen cantidades registradas.</p>`;
+            return;
+        }
+
+        // Crear contenedor de lista Bootstrap
+        const ul = document.createElement("ul");
+        ul.className = "list-group list-group-flush";
+
+        for (const [key, cant] of Object.entries(acumulado)) {
+            const li = document.createElement("li");
+            li.className = "list-group-item d-flex justify-content-between align-items-center px-0 py-2";
+            li.innerHTML = `${key} <span class="badge bg-primary rounded-pill" style="font-size: 0.85em; padding: 5px 10px;">${cant} Paca(s)</span>`;
+            ul.appendChild(li);
+        }
+
+        // Gran total al final de la lista
+        const liTotal = document.createElement("li");
+        liTotal.className = "list-group-item d-flex justify-content-between align-items-center px-0 pt-3 pb-0 fw-bold border-top border-2";
+        liTotal.innerHTML = `TOTAL GENERAL <span class="badge bg-success rounded-pill" style="font-size: 0.9em; padding: 6px 12px;">${totalGeneral} Paca(s)</span>`;
+        ul.appendChild(liTotal);
+
+        listaTotales.appendChild(ul);
+    }
+});
+</script>
+
+{% endblock %}

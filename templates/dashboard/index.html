@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Inicio
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="mb-4">
+        <!-- Nombre dinámico del usuario que inicia sesión -->
+        <h2 class="fw-bold">
+            ¡Hola nuevamente, {{ user.first_name|default:user.username }}!
+        </h2>
+    </div>
+
+    <!-- TARJETAS (Resumen de Totales por Modelo) -->
+    <div class="row">
+        <!-- Inicial -->
+        <div style="flex: 0 0 20%; max-width: 20%;" class="col-md-4 col-sm-6 mb-4">
+            <div class="card-dashboard">
+                <h6>Inicial</h6>
+                <h2 class="text-success fw-bold">{{ total_inicial|default:"0" }}</h2>
+                <small>Pacas</small>
+            </div>
+        </div>
+
+        <!-- Mediana -->
+        <div style="flex: 0 0 20%; max-width: 20%;" class="col-md-4 col-sm-6 mb-4">
+            <div class="card-dashboard">
+                <h6>Mediana</h6>
+                <h2 class="text-success fw-bold">{{ total_mediana|default:"0" }}</h2>
+                <small>Pacas</small>
+            </div>
+        </div>
+
+        <!-- Gruesa -->
+        <div style="flex: 0 0 20%; max-width: 20%;" class="col-md-4 col-sm-6 mb-4">
+            <div class="card-dashboard">
+                <h6>Gruesa</h6>
+                <h2 class="text-success fw-bold">{{ total_gruesa|default:"0" }}</h2>
+                <small>Pacas</small>
+            </div>
+        </div>
+
+        <!-- Extragruesa -->
+        <div style="flex: 0 0 20%; max-width: 20%;" class="col-md-4 col-sm-6 mb-4">
+            <div class="card-dashboard">
+                <h6>Extragruesa</h6>
+                <h2 class="text-success fw-bold">{{ total_extragruesa|default:"0" }}</h2>
+                <small>Pacas</small>
+            </div>
+        </div>
+
+        <!-- Cubetas Especial -->
+        <div style="flex: 0 0 20%; max-width: 20%;" class="col-md-4 col-sm-6 mb-4">
+            <div class="card-dashboard">
+                <h6>Cubetas Especial</h6>
+                <h2 class="text-success fw-bold">{{ total_cubetas_especial|default:"0" }}</h2>
+                <small>Pacas</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- STOCK ACTUAL POR MODELO, COLOR, SEGUNDA Y CUBETAS ESPECIAL -->
+    <div class="box mb-4">
+        <h5>
+             Stock Actual por Modelo y Color
+        </h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Color</th>
+                        <th>Inicial</th>
+                        <th>Mediana</th>
+                        <th>Gruesa</th>
+                        <th>Extra Gruesa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td> Amarillo</td>
+                        <td>{{ amarillo_inicial|default:"0" }}</td>
+                        <td>{{ amarillo_mediana|default:"0" }}</td>
+                        <td>{{ amarillo_gruesa|default:"0" }}</td>
+                        <td>{{ amarillo_extra|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td> Verde</td>
+                        <td>{{ verde_inicial|default:"0" }}</td>
+                        <td>{{ verde_mediana|default:"0" }}</td>
+                        <td>{{ verde_gruesa|default:"0" }}</td>
+                        <td>{{ verde_extra|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td> Gris</td>
+                        <td>{{ gris_inicial|default:"0" }}</td>
+                        <td>{{ gris_mediana|default:"0" }}</td>
+                        <td>{{ gris_gruesa|default:"0" }}</td>
+                        <td>{{ gris_extra|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td> Natural</td>
+                        <td>{{ natural_inicial|default:"0" }}</td>
+                        <td>{{ natural_mediana|default:"0" }}</td>
+                        <td>{{ natural_gruesa|default:"0" }}</td>
+                        <td>{{ natural_extra|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td> Morado</td>
+                        <td>{{ morado_inicial|default:"0" }}</td>
+                        <td>{{ morado_mediana|default:"0" }}</td>
+                        <td>{{ morado_gruesa|default:"0" }}</td>
+                        <td>{{ morado_extra|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td> Palo de Rosa</td>
+                        <td>{{ palorosa_inicial|default:"0" }}</td>
+                        <td>{{ palorosa_mediana|default:"0" }}</td>
+                        <td>{{ palorosa_gruesa|default:"0" }}</td>
+                        <td>{{ palorosa_extra|default:"0" }}</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="table-active fw-bold">
+                        <td>TOTAL</td>
+                        <td>{{ total_inicial|default:"0" }}</td>
+                        <td>{{ total_mediana|default:"0" }}</td>
+                        <td>{{ total_gruesa|default:"0" }}</td>
+                        <td>{{ total_extragruesa|default:"0" }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- CRONOGRAMA -->
+   <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2 text-warning"></i> Cronograma de Pendientes (Despachos)</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Módulo</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for despacho in despachos_pendientes %}
+                        <tr>
+                            <td><span class="badge bg-warning text-dark">Despachos</span></td>
+                            <td>Guía N° {{ despacho.numero_guia }} - Cliente: {{ despacho.cliente.nombre }}</td>
+                            <td><span class="badge bg-secondary">Pendiente</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center text-muted py-4">No existen pendientes.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

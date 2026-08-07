@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <a href="{% url 'reportes:panel' %}" class="btn btn-outline-secondary btn-sm mb-2"><i class="bi bi-arrow-left me-1"></i> Volver</a>
+                <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-truck-flatbed me-2 text-success"></i> Reporte de Despachos</h5>
+            </div>
+            <!-- Filtro por Fechas -->
+            <form method="get" class="d-flex align-items-center gap-2">
+                <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}" class="form-control form-control-sm">
+                <span>hasta</span>
+                <input type="date" name="fecha_fin" value="{{ fecha_fin }}" class="form-control form-control-sm">
+                <button type="submit" class="btn btn-success btn-sm">Filtrar</button>
+                <a href="{% url 'reportes:despachos' %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+            </form>
+            <a href="{% url 'reportes:exportar_despachos_excel' %}?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}" class="btn btn-success btn-sm">
+                <i class="bi bi-file-earmark-excel me-1"></i> Excel
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N° Guía</th>
+                            <th>Fecha</th>
+                            <th>Cliente</th>
+                            <th>Transportista (Placa)</th>
+                            <th>Conductor</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in despachos %}
+                        <tr>
+                            <td class="fw-bold">{{ d.numero_guia }}</td>
+                            <td>{{ d.fecha }}</td>
+                            <td>{{ d.cliente.nombre }}</td>
+                            <td>{{ d.transporte.placa }}</td>
+                            <td>{{ d.transporte.conductor }}</td>
+                            <td>
+                                <span class="badge {% if d.estado == 'ENTREGADO' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                    {{ d.get_estado_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="6" class="text-center text-muted py-4">No hay despachos registrados en este rango de fechas.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

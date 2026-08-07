@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Acceso de Usuario - Velpack{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white py-3">
+                    <h4 class="mb-0 fw-bold">Modificar Cuenta de Sistema</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">Nombres</label>
+                                <input type="text" name="first_name" class="form-control" value="{{ usuario_edit.first_name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">Apellidos</label>
+                                <input type="text" name="last_name" class="form-control" value="{{ usuario_edit.last_name }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">Nombre de Usuario (Login)</label>
+                                <input type="text" name="username" class="form-control" value="{{ usuario_edit.username }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">Correo Electrónico</label>
+                                <input type="email" name="email" class="form-control" value="{{ usuario_edit.email }}">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">Rol en el Sistema</label>
+                                <select name="rol" class="form-select" required>
+                                    <option value="usuario" {% if not usuario_edit.is_superuser %}selected{% endif %}>Usuario Normal</option>
+                                    <option value="superusuario" {% if usuario_edit.is_superuser %}selected{% endif %}>Superusuario (Administrador)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-muted">Nueva Contraseña <span class="text-secondary fw-normal">(Opcional)</span></label>
+                                <div class="input-group">
+                                    <input type="password" name="password" id="id_password" class="form-control" placeholder="Dejar vacío para mantener actual">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        <i class="bi bi-eye" id="eyeIcon"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text text-muted small mt-1">
+                                    Si cambias la clave, debe incluir mínimo 8 caracteres, una MAYÚSCULA, un NÚMERO y un carácter ESPECIAL (ej: . - _ @ $).
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" name="activo" id="activoCheck" {% if usuario_edit.is_active %}checked{% endif %}>
+                            <label class="form-check-label fw-bold" for="activoCheck">Permitir Acceso al Sistema (Activo)</label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-dark px-4">Guardar Cambios</button>
+                            <a href="{% url 'lista_usuarios' %}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const togglePassword = document.querySelector('#togglePassword');
+    const passwordInput = document.querySelector('#id_password');
+    const eyeIcon = document.querySelector('#eyeIcon');
+
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            eyeIcon.classList.toggle('bi-eye');
+            eyeIcon.classList.toggle('bi-eye-slash');
+        });
+    }
+</script>
+{% endblock %}

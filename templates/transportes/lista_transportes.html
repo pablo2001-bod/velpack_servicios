@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="box">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h3 class="fw-bold mb-1">Transportes</h3>
+                <small class="text-muted">Gestión de flota vehicular.</small>
+            </div>
+            <a href="{% url 'transportes:crear_transporte' %}" class="btn btn-primary">+ Nuevo Transporte</a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover align-middle">
+                <thead class="table-success">
+                    <tr>
+                        <th>Placa</th>
+                        <th>Identificación</th>
+                        <th>Conductor</th>
+                        <th>Propietario</th>
+                        <th>Capacidad (Kg)</th>
+                        <th>Activo</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in transportes %}
+                    <tr>
+                        <td>{{ t.placa }}</td>
+                        <td>{{ t.identificacion|default:"S/N" }}</td>
+                        <td>{{ t.conductor }}</td>
+                        <td>{{ t.propietario }}</td>
+                        <td>{{ t.capacidad_kg }}</td>
+                        <td>
+                            {% if t.activo %}
+                                <span class="badge bg-success">Sí</span>
+                            {% else %}
+                                <span class="badge bg-danger">No</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'transportes:editar_transporte' t.pk %}" class="btn btn-outline-warning btn-sm">Editar</a>
+                            <button type="button" class="btn btn-outline-danger btn-sm" 
+                                    data-bs-toggle="modal" data-bs-target="#modalEliminar" 
+                                    data-url="{% url 'transportes:eliminar_transporte' t.pk %}">Eliminar</button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted">No existen transportes registrados.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Eliminación -->
+<div class="modal fade" id="modalEliminar" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-body">¿Está seguro de eliminar este registro de transporte?</div>
+      <div class="modal-footer">
+        <form id="formEliminar" method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    var modal = document.getElementById('modalEliminar');
+    modal.addEventListener('show.bs.modal', function(e){
+        document.getElementById('formEliminar').setAttribute('action', e.relatedTarget.getAttribute('data-url'));
+    });
+</script>
+{% endblock %}

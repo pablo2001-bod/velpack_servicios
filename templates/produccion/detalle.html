@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Detalle de Producción #{{ produccion.id }}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+    <!-- Encabezado de Navegación -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'produccion:lista' %}" class="btn btn-sm btn-outline-secondary mb-2">
+                ⬅ Volver al Historial
+            </a>
+            <h2 class="fw-bold mb-0">Detalle de Producción #{{ produccion.id }}</h2>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-success fs-6 px-3 py-2 shadow-sm">
+                Fecha: {{ produccion.fecha|date:"d/m/Y" }}
+            </span>
+        </div>
+    </div>
+
+    <!-- Ficha de Datos Generales -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted uppercase fw-bold mb-3" style="font-size: 0.8rem; letter-spacing: 1px;">
+                        INFORMACIÓN GENERAL
+                    </h6>
+                    <div class="mb-2">
+                        <strong>Operador:</strong> 
+                        <span class="text-dark d-block fs-5 fw-bold">
+                            {{ produccion.operador.nombre_completo }}
+                        </span>
+                    </div>
+                    <div>
+                        <strong>Turno asignado:</strong>
+                        <span class="badge bg-secondary text-white d-block mt-1 fs-6 py-2">
+                            {{ produccion.turno.nombre }} ({{ produccion.turno.hora_inicio|time:"H:i" }} - {{ produccion.turno.hora_fin|time:"H:i" }})
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div>
+                        <h6 class="text-muted uppercase fw-bold mb-3" style="font-size: 0.8rem; letter-spacing: 1px;">
+                            ESTADÍSTICAS DEL TURNO
+                        </h6>
+                        <strong>Total General Fabricado:</strong>
+                        <h2 class="text-dark fw-bold mt-1 mb-0">{{ produccion.total_pacas }} Pacas</h2>
+                    </div>
+                    <small class="text-muted mt-2">Corresponde a la suma de todas las referencias procesadas.</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="text-muted uppercase fw-bold mb-3" style="font-size: 0.8rem; letter-spacing: 1px;">
+                        OBSERVACIONES
+                    </h6>
+                    <p class="text-dark mb-0 bg-light p-3 rounded" style="min-height: 80px;">
+                        {% if produccion.observacion %}
+                            {{ produccion.observacion }}
+                        {% else %}
+                            <span class="text-muted italic">Sin comentarios u observaciones agregadas en este registro.</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Desglose de Producción -->
+    <div class="row g-4">
+        
+        <!-- Tabla de Modelos y Colores Procesados -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="card-title mb-0 fw-bold">Modelos y Colores Fabricados</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Modelo</th>
+                                    <th>Color</th>
+                                    <th class="text-center">Cantidad de Pacas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for detalle in produccion.detalles.all %}
+                                    <tr>
+                                        <td><strong>{{ detalle.producto.nombre }}</strong></td>
+                                        <td><span class="badge bg-light text-dark border px-2 py-1">{{ detalle.color.nombre }}</span></td>
+                                        <td class="text-center"><span class="badge bg-success px-3 py-2 rounded-pill fs-6">{{ detalle.cantidad_pacas }}</span></td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">No hay registros de detalles.</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Listado Detallado de Pacas Individuales -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-dark text-white py-3">
+                    <h5 class="card-title mb-0 fw-bold">Códigos de Pacas Generadas</h5>
+                </div>
+                <div class="card-body p-0" style="max-height: 400px; overflow-y: auto;">
+                    <ul class="list-group list-group-flush">
+                        {% for detalle in produccion.detalles.all %}
+                            <li class="list-group-item bg-light fw-bold py-2 px-3 text-secondary" style="font-size: 0.85rem;">
+                                📌 {{ detalle.producto.nombre }} ({{ detalle.color.nombre }})
+                            </li>
+                            {% for paca in detalle.pacas.all %}
+                                <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-4">
+                                    <span class="text-muted small">Paca N° {{ paca.numero_paca }}</span>
+                                    <code class="text-danger fw-bold fs-6">{{ paca.codigo_unico }}</code>
+                                </li>
+                            {% empty %}
+                                <li class="list-group-item text-muted small px-4">Sin pacas generadas.</li>
+                            {% endfor %}
+                        {% empty %}
+                            <li class="list-group-item text-muted text-center py-3">No hay pacas disponibles.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer bg-light text-center py-2">
+                    <small class="text-muted">Total de códigos en lista: {{ produccion.total_pacas }}</small>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,1502 @@
+[
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add log entry",
+        "content_type": [
+            "admin",
+            "logentry"
+        ],
+        "codename": "add_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change log entry",
+        "content_type": [
+            "admin",
+            "logentry"
+        ],
+        "codename": "change_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete log entry",
+        "content_type": [
+            "admin",
+            "logentry"
+        ],
+        "codename": "delete_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view log entry",
+        "content_type": [
+            "admin",
+            "logentry"
+        ],
+        "codename": "view_logentry"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add permission",
+        "content_type": [
+            "auth",
+            "permission"
+        ],
+        "codename": "add_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change permission",
+        "content_type": [
+            "auth",
+            "permission"
+        ],
+        "codename": "change_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete permission",
+        "content_type": [
+            "auth",
+            "permission"
+        ],
+        "codename": "delete_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view permission",
+        "content_type": [
+            "auth",
+            "permission"
+        ],
+        "codename": "view_permission"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add group",
+        "content_type": [
+            "auth",
+            "group"
+        ],
+        "codename": "add_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change group",
+        "content_type": [
+            "auth",
+            "group"
+        ],
+        "codename": "change_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete group",
+        "content_type": [
+            "auth",
+            "group"
+        ],
+        "codename": "delete_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view group",
+        "content_type": [
+            "auth",
+            "group"
+        ],
+        "codename": "view_group"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add user",
+        "content_type": [
+            "auth",
+            "user"
+        ],
+        "codename": "add_user"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change user",
+        "content_type": [
+            "auth",
+            "user"
+        ],
+        "codename": "change_user"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete user",
+        "content_type": [
+            "auth",
+            "user"
+        ],
+        "codename": "delete_user"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view user",
+        "content_type": [
+            "auth",
+            "user"
+        ],
+        "codename": "view_user"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add content type",
+        "content_type": [
+            "contenttypes",
+            "contenttype"
+        ],
+        "codename": "add_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change content type",
+        "content_type": [
+            "contenttypes",
+            "contenttype"
+        ],
+        "codename": "change_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete content type",
+        "content_type": [
+            "contenttypes",
+            "contenttype"
+        ],
+        "codename": "delete_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view content type",
+        "content_type": [
+            "contenttypes",
+            "contenttype"
+        ],
+        "codename": "view_contenttype"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add session",
+        "content_type": [
+            "sessions",
+            "session"
+        ],
+        "codename": "add_session"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change session",
+        "content_type": [
+            "sessions",
+            "session"
+        ],
+        "codename": "change_session"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete session",
+        "content_type": [
+            "sessions",
+            "session"
+        ],
+        "codename": "delete_session"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view session",
+        "content_type": [
+            "sessions",
+            "session"
+        ],
+        "codename": "view_session"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add Perfil de Usuario",
+        "content_type": [
+            "accounts",
+            "perfilusuario"
+        ],
+        "codename": "add_perfilusuario"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change Perfil de Usuario",
+        "content_type": [
+            "accounts",
+            "perfilusuario"
+        ],
+        "codename": "change_perfilusuario"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete Perfil de Usuario",
+        "content_type": [
+            "accounts",
+            "perfilusuario"
+        ],
+        "codename": "delete_perfilusuario"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view Perfil de Usuario",
+        "content_type": [
+            "accounts",
+            "perfilusuario"
+        ],
+        "codename": "view_perfilusuario"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add Rol",
+        "content_type": [
+            "accounts",
+            "rol"
+        ],
+        "codename": "add_rol"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change Rol",
+        "content_type": [
+            "accounts",
+            "rol"
+        ],
+        "codename": "change_rol"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete Rol",
+        "content_type": [
+            "accounts",
+            "rol"
+        ],
+        "codename": "delete_rol"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view Rol",
+        "content_type": [
+            "accounts",
+            "rol"
+        ],
+        "codename": "view_rol"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add cliente",
+        "content_type": [
+            "clientes",
+            "cliente"
+        ],
+        "codename": "add_cliente"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change cliente",
+        "content_type": [
+            "clientes",
+            "cliente"
+        ],
+        "codename": "change_cliente"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete cliente",
+        "content_type": [
+            "clientes",
+            "cliente"
+        ],
+        "codename": "delete_cliente"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view cliente",
+        "content_type": [
+            "clientes",
+            "cliente"
+        ],
+        "codename": "view_cliente"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add proveedor",
+        "content_type": [
+            "proveedores",
+            "proveedor"
+        ],
+        "codename": "add_proveedor"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change proveedor",
+        "content_type": [
+            "proveedores",
+            "proveedor"
+        ],
+        "codename": "change_proveedor"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete proveedor",
+        "content_type": [
+            "proveedores",
+            "proveedor"
+        ],
+        "codename": "delete_proveedor"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view proveedor",
+        "content_type": [
+            "proveedores",
+            "proveedor"
+        ],
+        "codename": "view_proveedor"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add ingreso materia prima",
+        "content_type": [
+            "proveedores",
+            "ingresomateriaprima"
+        ],
+        "codename": "add_ingresomateriaprima"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change ingreso materia prima",
+        "content_type": [
+            "proveedores",
+            "ingresomateriaprima"
+        ],
+        "codename": "change_ingresomateriaprima"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete ingreso materia prima",
+        "content_type": [
+            "proveedores",
+            "ingresomateriaprima"
+        ],
+        "codename": "delete_ingresomateriaprima"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view ingreso materia prima",
+        "content_type": [
+            "proveedores",
+            "ingresomateriaprima"
+        ],
+        "codename": "view_ingresomateriaprima"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add Turno",
+        "content_type": [
+            "produccion",
+            "turno"
+        ],
+        "codename": "add_turno"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change Turno",
+        "content_type": [
+            "produccion",
+            "turno"
+        ],
+        "codename": "change_turno"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete Turno",
+        "content_type": [
+            "produccion",
+            "turno"
+        ],
+        "codename": "delete_turno"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view Turno",
+        "content_type": [
+            "produccion",
+            "turno"
+        ],
+        "codename": "view_turno"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add Producción",
+        "content_type": [
+            "produccion",
+            "produccion"
+        ],
+        "codename": "add_produccion"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change Producción",
+        "content_type": [
+            "produccion",
+            "produccion"
+        ],
+        "codename": "change_produccion"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete Producción",
+        "content_type": [
+            "produccion",
+            "produccion"
+        ],
+        "codename": "delete_produccion"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view Producción",
+        "content_type": [
+            "produccion",
+            "produccion"
+        ],
+        "codename": "view_produccion"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add Detalle de Producción",
+        "content_type": [
+            "produccion",
+            "detalleproduccion"
+        ],
+        "codename": "add_detalleproduccion"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change Detalle de Producción",
+        "content_type": [
+            "produccion",
+            "detalleproduccion"
+        ],
+        "codename": "change_detalleproduccion"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete Detalle de Producción",
+        "content_type": [
+            "produccion",
+            "detalleproduccion"
+        ],
+        "codename": "delete_detalleproduccion"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view Detalle de Producción",
+        "content_type": [
+            "produccion",
+            "detalleproduccion"
+        ],
+        "codename": "view_detalleproduccion"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add Paca",
+        "content_type": [
+            "produccion",
+            "paca"
+        ],
+        "codename": "add_paca"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change Paca",
+        "content_type": [
+            "produccion",
+            "paca"
+        ],
+        "codename": "change_paca"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete Paca",
+        "content_type": [
+            "produccion",
+            "paca"
+        ],
+        "codename": "delete_paca"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view Paca",
+        "content_type": [
+            "produccion",
+            "paca"
+        ],
+        "codename": "view_paca"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add operador",
+        "content_type": [
+            "produccion",
+            "operador"
+        ],
+        "codename": "add_operador"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change operador",
+        "content_type": [
+            "produccion",
+            "operador"
+        ],
+        "codename": "change_operador"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete operador",
+        "content_type": [
+            "produccion",
+            "operador"
+        ],
+        "codename": "delete_operador"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view operador",
+        "content_type": [
+            "produccion",
+            "operador"
+        ],
+        "codename": "view_operador"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add venta",
+        "content_type": [
+            "ventas",
+            "venta"
+        ],
+        "codename": "add_venta"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change venta",
+        "content_type": [
+            "ventas",
+            "venta"
+        ],
+        "codename": "change_venta"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete venta",
+        "content_type": [
+            "ventas",
+            "venta"
+        ],
+        "codename": "delete_venta"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view venta",
+        "content_type": [
+            "ventas",
+            "venta"
+        ],
+        "codename": "view_venta"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add detalle venta",
+        "content_type": [
+            "ventas",
+            "detalleventa"
+        ],
+        "codename": "add_detalleventa"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change detalle venta",
+        "content_type": [
+            "ventas",
+            "detalleventa"
+        ],
+        "codename": "change_detalleventa"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete detalle venta",
+        "content_type": [
+            "ventas",
+            "detalleventa"
+        ],
+        "codename": "delete_detalleventa"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view detalle venta",
+        "content_type": [
+            "ventas",
+            "detalleventa"
+        ],
+        "codename": "view_detalleventa"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add despacho",
+        "content_type": [
+            "despachos",
+            "despacho"
+        ],
+        "codename": "add_despacho"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change despacho",
+        "content_type": [
+            "despachos",
+            "despacho"
+        ],
+        "codename": "change_despacho"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete despacho",
+        "content_type": [
+            "despachos",
+            "despacho"
+        ],
+        "codename": "delete_despacho"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view despacho",
+        "content_type": [
+            "despachos",
+            "despacho"
+        ],
+        "codename": "view_despacho"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add detalle despacho",
+        "content_type": [
+            "despachos",
+            "detalledespacho"
+        ],
+        "codename": "add_detalledespacho"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change detalle despacho",
+        "content_type": [
+            "despachos",
+            "detalledespacho"
+        ],
+        "codename": "change_detalledespacho"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete detalle despacho",
+        "content_type": [
+            "despachos",
+            "detalledespacho"
+        ],
+        "codename": "delete_detalledespacho"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view detalle despacho",
+        "content_type": [
+            "despachos",
+            "detalledespacho"
+        ],
+        "codename": "view_detalledespacho"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add Transporte",
+        "content_type": [
+            "transportes",
+            "transporte"
+        ],
+        "codename": "add_transporte"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change Transporte",
+        "content_type": [
+            "transportes",
+            "transporte"
+        ],
+        "codename": "change_transporte"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete Transporte",
+        "content_type": [
+            "transportes",
+            "transporte"
+        ],
+        "codename": "delete_transporte"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view Transporte",
+        "content_type": [
+            "transportes",
+            "transporte"
+        ],
+        "codename": "view_transporte"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add color",
+        "content_type": [
+            "catalogos",
+            "color"
+        ],
+        "codename": "add_color"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change color",
+        "content_type": [
+            "catalogos",
+            "color"
+        ],
+        "codename": "change_color"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete color",
+        "content_type": [
+            "catalogos",
+            "color"
+        ],
+        "codename": "delete_color"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view color",
+        "content_type": [
+            "catalogos",
+            "color"
+        ],
+        "codename": "view_color"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can add producto",
+        "content_type": [
+            "catalogos",
+            "producto"
+        ],
+        "codename": "add_producto"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can change producto",
+        "content_type": [
+            "catalogos",
+            "producto"
+        ],
+        "codename": "change_producto"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can delete producto",
+        "content_type": [
+            "catalogos",
+            "producto"
+        ],
+        "codename": "delete_producto"
+    }
+},
+{
+    "model": "auth.permission",
+    "fields": {
+        "name": "Can view producto",
+        "content_type": [
+            "catalogos",
+            "producto"
+        ],
+        "codename": "view_producto"
+    }
+},
+{
+    "model": "auth.user",
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$rsmRrFaDrDSE5Dhsnj9deB$zw/nI3A9okFl6gK+rueOtEx7M6MMENLNfma16aNvDK0=",
+        "last_login": "2026-08-07T00:46:24.707Z",
+        "is_superuser": true,
+        "username": "admin",
+        "first_name": "",
+        "last_name": "",
+        "email": "",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2026-08-07T00:45:46.658Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "produccion.turno",
+    "pk": 3,
+    "fields": {
+        "nombre": "Mañana",
+        "hora_inicio": "07:00:00",
+        "hora_fin": "15:00:00",
+        "activo": true
+    }
+},
+{
+    "model": "produccion.turno",
+    "pk": 4,
+    "fields": {
+        "nombre": "Tarde",
+        "hora_inicio": "15:00:00",
+        "hora_fin": "23:00:00",
+        "activo": true
+    }
+},
+{
+    "model": "produccion.turno",
+    "pk": 5,
+    "fields": {
+        "nombre": "Noche",
+        "hora_inicio": "23:00:00",
+        "hora_fin": "07:00:00",
+        "activo": true
+    }
+},
+{
+    "model": "catalogos.producto",
+    "pk": 1,
+    "fields": {
+        "nombre": "Cubeta Inicial",
+        "codigo": "I",
+        "activo": true
+    }
+},
+{
+    "model": "catalogos.producto",
+    "pk": 2,
+    "fields": {
+        "nombre": "Cubeta Mediana",
+        "codigo": "M",
+        "activo": true
+    }
+},
+{
+    "model": "catalogos.producto",
+    "pk": 3,
+    "fields": {
+        "nombre": "Cubeta Gruesa",
+        "codigo": "G",
+        "activo": true
+    }
+},
+{
+    "model": "catalogos.producto",
+    "pk": 4,
+    "fields": {
+        "nombre": "Cubeta Extragruesa",
+        "codigo": "E",
+        "activo": true
+    }
+},
+{
+    "model": "catalogos.producto",
+    "pk": 5,
+    "fields": {
+        "nombre": "Cubeta de Segunda",
+        "codigo": "S",
+        "activo": true
+    }
+},
+{
+    "model": "catalogos.color",
+    "pk": 1,
+    "fields": {
+        "nombre": "Morado",
+        "codigo": "M",
+        "activo": true
+    }
+},
+{
+    "model": "catalogos.color",
+    "pk": 2,
+    "fields": {
+        "nombre": "Verde",
+        "codigo": "V",
+        "activo": true
+    }
+},
+{
+    "model": "catalogos.color",
+    "pk": 3,
+    "fields": {
+        "nombre": "Natural",
+        "codigo": "N",
+        "activo": true
+    }
+},
+{
+    "model": "catalogos.color",
+    "pk": 4,
+    "fields": {
+        "nombre": "Palo de Rosa",
+        "codigo": "R",
+        "activo": true
+    }
+},
+{
+    "model": "catalogos.color",
+    "pk": 5,
+    "fields": {
+        "nombre": "Amarillo",
+        "codigo": "A",
+        "activo": true
+    }
+},
+{
+    "model": "catalogos.color",
+    "pk": 6,
+    "fields": {
+        "nombre": "Gris",
+        "codigo": "G",
+        "activo": true
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 1,
+    "fields": {
+        "action_time": "2026-08-07T00:48:19.423Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "catalogos",
+            "color"
+        ],
+        "object_id": "1",
+        "object_repr": "Morado",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 2,
+    "fields": {
+        "action_time": "2026-08-07T00:49:02.266Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "catalogos",
+            "color"
+        ],
+        "object_id": "2",
+        "object_repr": "Verde",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 3,
+    "fields": {
+        "action_time": "2026-08-07T00:49:16.173Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "catalogos",
+            "color"
+        ],
+        "object_id": "3",
+        "object_repr": "Natural",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 4,
+    "fields": {
+        "action_time": "2026-08-07T00:49:27.924Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "catalogos",
+            "color"
+        ],
+        "object_id": "4",
+        "object_repr": "Palo de Rosa",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 5,
+    "fields": {
+        "action_time": "2026-08-07T00:49:54.465Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "catalogos",
+            "color"
+        ],
+        "object_id": "5",
+        "object_repr": "Amarillo",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 6,
+    "fields": {
+        "action_time": "2026-08-07T00:50:03.326Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "catalogos",
+            "color"
+        ],
+        "object_id": "6",
+        "object_repr": "Gris",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 7,
+    "fields": {
+        "action_time": "2026-08-07T00:50:53.592Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "catalogos",
+            "producto"
+        ],
+        "object_id": "1",
+        "object_repr": "Cubeta Inicial",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 8,
+    "fields": {
+        "action_time": "2026-08-07T00:51:00.702Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "catalogos",
+            "producto"
+        ],
+        "object_id": "2",
+        "object_repr": "Cubeta Mediana",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 9,
+    "fields": {
+        "action_time": "2026-08-07T00:51:13.954Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "catalogos",
+            "producto"
+        ],
+        "object_id": "3",
+        "object_repr": "Cubeta Gruesa",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 10,
+    "fields": {
+        "action_time": "2026-08-07T00:51:24.718Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "catalogos",
+            "producto"
+        ],
+        "object_id": "4",
+        "object_repr": "Cubeta Extragruesa",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 11,
+    "fields": {
+        "action_time": "2026-08-07T00:51:36.639Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "catalogos",
+            "producto"
+        ],
+        "object_id": "5",
+        "object_repr": "Cubeta de Segunda",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 12,
+    "fields": {
+        "action_time": "2026-08-07T00:52:51.595Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "produccion",
+            "turno"
+        ],
+        "object_id": "1",
+        "object_repr": "Mañana",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 13,
+    "fields": {
+        "action_time": "2026-08-07T00:53:38.805Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "produccion",
+            "turno"
+        ],
+        "object_id": "2",
+        "object_repr": "Tarde",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 14,
+    "fields": {
+        "action_time": "2026-08-07T00:54:27.483Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "produccion",
+            "turno"
+        ],
+        "object_id": "1",
+        "object_repr": "Mañana",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 15,
+    "fields": {
+        "action_time": "2026-08-07T00:54:27.483Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "produccion",
+            "turno"
+        ],
+        "object_id": "2",
+        "object_repr": "Tarde",
+        "action_flag": 3,
+        "change_message": ""
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 16,
+    "fields": {
+        "action_time": "2026-08-07T00:54:51.620Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "produccion",
+            "turno"
+        ],
+        "object_id": "3",
+        "object_repr": "Mañana",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 17,
+    "fields": {
+        "action_time": "2026-08-07T00:55:13.550Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "produccion",
+            "turno"
+        ],
+        "object_id": "4",
+        "object_repr": "Tarde",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 18,
+    "fields": {
+        "action_time": "2026-08-07T00:55:32.681Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "produccion",
+            "turno"
+        ],
+        "object_id": "5",
+        "object_repr": "Noche",
+        "action_flag": 1,
+        "change_message": "[{\"added\": {}}]"
+    }
+},
+{
+    "model": "admin.logentry",
+    "pk": 19,
+    "fields": {
+        "action_time": "2026-08-07T00:58:40.947Z",
+        "user": [
+            "admin"
+        ],
+        "content_type": [
+            "produccion",
+            "produccion"
+        ],
+        "object_id": "1",
+        "object_repr": "2026-08-06 - Pablo Tisalema (PT)",
+        "action_flag": 3,
+        "change_message": ""
+    }
+}
+]

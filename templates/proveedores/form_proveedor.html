@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="box">
+        <div class="mb-4">
+            <h3 class="fw-bold">{% if form.instance.pk %}Editar{% else %}Nuevo{% endif %} Proveedor</h3>
+            <small class="text-muted">Completa la información del proveedor.</small>
+        </div>
+
+        <form method="post" class="row g-3">
+            {% csrf_token %}
+            
+            <div class="col-md-6">
+                <label class="form-label">Nombre</label>
+                {{ form.nombre }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">RUC / Cédula</label>
+                {{ form.ruc }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Teléfono</label>
+                {{ form.telefono }}
+            </div>
+            <div class="col-12">
+                <label class="form-label">Dirección</label>
+                {{ form.direccion }}
+            </div>
+
+            <!-- Botones alineados -->
+            <div class="col-12 mt-4">
+                <button type="submit" class="btn btn-success">Guardar Proveedor</button>
+                <a href="{% url 'proveedores:lista_proveedores' %}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

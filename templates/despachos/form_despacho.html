@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card p-4 shadow-sm">
+    <h2 class="text-primary fw-bold mb-4">{{ titulo }}</h2>
+    <form method="POST" id="despacho-form">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <!-- Recuadro Punteado para Detalles -->
+        <div class="border p-3 mb-3 bg-light rounded" style="border: 2px dashed #ccc !important;">
+            <h5 class="mb-3 text-secondary">Distribución de Cubetas </h5>
+            
+            <!-- Cabeceras de las columnas -->
+            <div class="row fw-bold text-muted mb-2">
+                <div class="col-md-2">Cant. Cubetas</div>
+                <div class="col-md-2">Precio Unit.</div>
+                <div class="col-md-3">Variedad</div>
+                <div class="col-md-3">Color</div>
+                <div class="col-md-1 text-center">Acción</div>
+            </div>
+
+            <div id="form-container">
+                {{ detalle_formset.management_form }}
+                {% for detalle in detalle_formset %}
+                    <div class="row mb-2 fila-detalle align-items-center">
+                        <!-- Campos ocultos necesarios (ID y DELETE si existe) -->
+                        {% for hidden in detalle.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                        
+                        <div class="col-md-2">
+                            {{ detalle.cantidad }}
+                        </div>
+                        <div class="col-md-2">
+                            {{ detalle.precio }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ detalle.variedad }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ detalle.color }}
+                        </div>
+                        <div class="col-md-1 text-center">
+                            {% if detalle_formset.can_delete %}
+                                <div style="display: none;">{{ detalle.DELETE }}</div>
+                            {% endif %}
+                            <button type="button" class="btn btn-danger btn-sm eliminar">Eliminar</button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            
+            <button type="button" id="add-form" class="btn btn-primary btn-sm mt-2">Añadir</button>
+        </div>
+
+        <!-- Barra de Total -->
+        <div class="alert alert-success">
+            <strong>Total Unidades: <span id="total-cubetas">0</span> | Monto: $<span id="monto-total">0.00</span></strong>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">Generar</button>
+            <a href="{% url 'despachos:lista' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<!-- Script unificado para cálculos y clonación -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.getElementById('form-container');
+        const totalForms = document.getElementById('id_detalles-TOTAL_FORMS');
+
+        function calcularTotales() {
+            let totalUnidades = 0;
+            let montoTotal = 0;
+            
+            const filas = container.querySelectorAll('.fila-detalle');
+            
+            filas.forEach(row => {
+                let inputCant = row.querySelector('input[name*="cantidad"]');
+                let inputPrecio = row.querySelector('input[name*="precio"]');
+                let inputDelete = row.querySelector('input[name*="DELETE"]');
+                
+                // Si la fila está marcada para eliminarse, no la sumamos
+                if (inputDelete && inputDelete.checked) return;
+                
+                let cant = inputCant ? parseFloat(inputCant.value) || 0 : 0;
+                let precio = inputPrecio ? parseFloat(inputPrecio.value) || 0 : 0;
+                
+                totalUnidades += cant;
+                montoTotal += (cant * precio);
+            });
+            
+            document.getElementById('total-cubetas').innerText = totalUnidades;
+            document.getElementById('monto-total').innerText = montoTotal.toFixed(2);
+        }
+
+        container.addEventListener('input', calcularTotales);
+        container.addEventListener('change', calcularTotales);
+
+        const addBtn = document.getElementById('add-form');
+        if (addBtn) {
+            addBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                let formCount = document.querySelectorAll('.fila-detalle').length;
+                let primeraFila = container.querySelector('.fila-detalle');
+                
+                if (!primeraFila) return;
+                
+                let nuevaFila = primeraFila.cloneNode(true);
+                
+                nuevaFila.querySelectorAll('input, select').forEach(input => {
+                    if (input.type === 'checkbox' && input.name.includes('DELETE')) {
+                        input.checked = false;
+                    } else if (input.type !== 'hidden') {
+                        input.value = '';
+                    } else {
+                        input.value = ''; // Limpiar IDs ocultos al clonar para que Django sepa que es nuevo
+                    }
+                    if (input.name) {
+                        input.name = input.name.replace(/-\d+-/, `-${formCount}-`);
+                    }
+                    if (input.id) {
+                        input.id = input.id.replace(/-\d+-/, `-${formCount}-`);
+                    }
+                });
+                
+                container.appendChild(nuevaFila);
+                if (totalForms) {
+                    totalForms.value = formCount + 1;
+                }
+                calcularTotales();
+            });
+        }
+
+        container.addEventListener('click', function(e) {
+            if (e.target.classList.contains('eliminar')) {
+                let fila = e.target.closest('.fila-detalle');
+                let inputDelete = fila.querySelector('input[name*="DELETE"]');
+                
+                if (document.querySelectorAll('.fila-detalle').length > 1) {
+                    if (inputDelete) {
+                        inputDelete.checked = true;
+                        fila.style.display = 'none'; // Ocultar visualmente si ya existía en BD
+                    } else {
+                        fila.remove(); // Eliminar directamente si era una fila nueva añadida por JS
+                    }
+                    
+                    // Reindexar formularios restantes
+                    document.querySelectorAll('.fila-detalle').forEach((row, index) => {
+                        row.querySelectorAll('input, select').forEach(input => {
+                            if (input.name) {
+                                input.name = input.name.replace(/-\d+-/, `-${index}-`);
+                            }
+                            if (input.id) {
+                                input.id = input.id.replace(/-\d+-/, `-${index}-`);
+                            }
+                        });
+                    });
+                    
+                    if (totalForms) {
+                        totalForms.value = document.querySelectorAll('.fila-detalle').length;
+                    }
+                    calcularTotales();
+                }
+            }
+        });
+
+        calcularTotales();
+    });
+</script>
+{% endblock %}

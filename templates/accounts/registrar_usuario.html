@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Registrar Usuario - Velpack
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">Registrar Nuevo Usuario / Operador</h2>
+        </div>
+        <a href="/" class="btn btn-secondary shadow-sm">
+            Volver al Inicio
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="box shadow-sm rounded bg-white p-4">
+        <form method="POST" autocomplete="off">
+            {% csrf_token %}
+            
+            <div class="row g-3 mb-4">
+                <!-- Selector del Rol -->
+                <div class="col-md-12">
+                    <label class="form-label fw-bold">Rol / Tipo de Registro</label>
+                    <select name="rol" id="id_rol" class="form-select" required>
+                        <option value="" disabled selected>Seleccione una opción...</option>
+                        <option value="operador">Operador (Planta de Producción)</option>
+                        <option value="usuario_normal">Usuario (Acceso Estándar)</option>
+                        <option value="superusuario">Administrador (Acceso Total)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <!-- Nombres (Común) -->
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Nombres</label>
+                    <input type="text" name="first_name" class="form-control" placeholder="Ej: Pablo" required>
+                </div>
+
+                <!-- Apellidos (Común) -->
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Apellidos</label>
+                    <input type="text" name="last_name" class="form-control" placeholder="Ej: Tisalema" required>
+                </div>
+
+                <!-- Cédula (Solo para Operador) -->
+                <div class="col-md-6" id="campo_cedula" style="display: none;">
+                    <label class="form-label fw-bold">Número de Cédula</label>
+                    <input type="text" name="cedula" id="input_cedula" class="form-control" placeholder="Ej: 050xxxxxxx" maxlength="10">
+                </div>
+
+                <!-- Campos de Cuenta (Solo para Cuentas de Acceso) -->
+                <div class="col-md-6 campo-cuenta" style="display: none;">
+                    <label class="form-label fw-bold">Nombre de Usuario (Login)</label>
+                    <input type="text" name="username" id="input_username" class="form-control" placeholder="Ej: pablo.t">
+                </div>
+
+                <div class="col-md-6 campo-cuenta" style="display: none;">
+                    <label class="form-label fw-bold">Correo Electrónico <span class="text-secondary fw-normal">(Opcional)</span></label>
+                    <input type="email" name="email" id="input_email" class="form-control" placeholder="Ej: usuario@velpack.com">
+                </div>
+
+                <div class="col-md-6 campo-cuenta" style="display: none;">
+                    <label class="form-label fw-bold">Contraseña</label>
+                    <div class="input-group">
+                        <input type="password" name="password" id="input_password" class="form-control" placeholder="Mínimo 8 caracteres">
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                            <i class="bi bi-eye" id="eyeIcon"></i>
+                        </button>
+                    </div>
+                    <div class="form-text text-muted small mt-1">
+                        Debe incluir al menos 8 caracteres, una MAYÚSCULA, un NÚMERO y un carácter ESPECIAL (ej: . - _ @ $).
+                    </div>
+                </div>
+            </div>
+
+            <hr class="my-4">
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success px-4 shadow-sm">
+                    Guardar Registro
+                </button>
+                <a href="{% url 'lista_usuarios' %}" class="btn btn-outline-secondary px-4">
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('id_rol').addEventListener('change', function() {
+        const rol = this.value;
+        const campoCedula = document.getElementById('campo_cedula');
+        const inputCedula = document.getElementById('input_cedula');
+        const camposCuenta = document.querySelectorAll('.campo-cuenta');
+        const inputUsername = document.getElementById('input_username');
+        const inputPassword = document.getElementById('input_password');
+
+        if (rol === 'operador') {
+            // Mostrar Cédula y hacerla obligatoria
+            campoCedula.style.display = 'block';
+            inputCedula.required = true;
+
+            // Ocultar campos de cuenta y quitar obligatoriedad
+            camposCuenta.forEach(div => div.style.display = 'none');
+            inputUsername.required = false;
+            inputUsername.value = '';
+            inputPassword.required = false;
+            inputPassword.value = '';
+            document.getElementById('input_email').value = '';
+            
+        } else if (rol === 'usuario_normal' || rol === 'superusuario') {
+            // Ocultar Cédula
+            campoCedula.style.display = 'none';
+            inputCedula.required = false;
+            inputCedula.value = '';
+
+            // Mostrar campos de cuenta y hacer obligatorios solo Username y Password
+            camposCuenta.forEach(div => div.style.display = 'block');
+            inputUsername.required = true;
+            inputPassword.required = true;
+        }
+    });
+
+    // Toggle para ver/ocultar contraseña
+    const togglePassword = document.querySelector('#togglePassword');
+    const passwordInput = document.querySelector('#input_password');
+    const eyeIcon = document.querySelector('#eyeIcon');
+
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function () {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            eyeIcon.classList.toggle('bi-eye');
+            eyeIcon.classList.toggle('bi-eye-slash');
+        });
+    }
+</script>
+{% endblock %}

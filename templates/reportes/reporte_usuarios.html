@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <a href="{% url 'reportes:panel' %}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="bi bi-arrow-left me-1"></i> Volver al Panel
+                </a>
+                <h5 class="mb-0 fw-bold text-dark">
+                    <i class="bi bi-people me-2 text-success"></i> Reporte de Perfiles y Usuarios
+                </h5>
+            </div>
+            <div>
+                <a href="{% url 'reportes:exportar_usuarios_excel' %}" class="btn btn-success btn-sm">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Descargar Excel
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuario</th>
+                            <th>Nombre Completo</th>
+                            <th>Código</th>
+                            <th>Rol</th>
+                            <th>Cargo</th>
+                            <th>Teléfono</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for perfil in perfiles %}
+                        <tr>
+                            <td class="text-muted">{{ perfil.id }}</td>
+                            <td class="fw-bold">{{ perfil.usuario.username }}</td>
+                            <td>{{ perfil.usuario.get_full_name|default:"No especificado" }}</td>
+                            <td><span class="badge bg-dark">{{ perfil.codigo_operador }}</span></td>
+                            <td>{{ perfil.rol|default:"Sin Rol" }}</td>
+                            <td>{{ perfil.cargo|default:"N/A" }}</td>
+                            <td>{{ perfil.telefono|default:"N/A" }}</td>
+                            <td>
+                                {% if perfil.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">
+                                No hay usuarios o perfiles registrados para mostrar.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

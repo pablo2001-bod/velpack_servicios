@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+            <div>
+                <a href="{% url 'reportes:panel' %}" class="btn btn-outline-secondary btn-sm mb-2"><i class="bi bi-arrow-left me-1"></i> Volver</a>
+                <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-truck me-2 text-success"></i> Directorio de Transportistas / Choferes (Total: {{ total_transportes }})</h5>
+            </div>
+            <a href="{% url 'reportes:exportar_transportes_excel' %}" class="btn btn-success btn-sm"><i class="bi bi-file-earmark-excel me-1"></i> Excel</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr><th>Placa</th><th>Conductor</th><th>Identificación</th><th>Propietario</th><th>Teléfono</th><th>Capacidad (Kg)</th></tr>
+                </thead>
+                <tbody>
+                    {% for t in transportes %}
+                    <tr>
+                        <td class="fw-bold">{{ t.placa }}</td>
+                        <td>{{ t.conductor }}</td>
+                        <td>{{ t.identificacion|default:"-" }}</td>
+                        <td>{{ t.propietario }}</td>
+                        <td>{{ t.telefono|default:"-" }}</td>
+                        <td class="text-success fw-bold">{{ t.capacidad_kg }} Kg</td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="6" class="text-center text-muted py-4">No hay transportistas registrados.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

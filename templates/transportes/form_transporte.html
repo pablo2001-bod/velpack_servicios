@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container-fluid"><div class="box">
+    <h3>{% if form.instance.pk %}Editar{% else %}Nuevo{% endif %} Transporte</h3>
+    <form method="post" class="row g-3">
+        {% csrf_token %}
+        <div class="col-md-4">{{ form.placa.label_tag }}{{ form.placa }}</div>
+        <div class="col-md-4">{{ form.identificacion.label_tag }}{{ form.identificacion }}</div>
+        <div class="col-md-4">{{ form.propietario.label_tag }}{{ form.propietario }}</div>
+        <div class="col-md-4">{{ form.conductor.label_tag }}{{ form.conductor }}</div>
+        <div class="col-md-4">{{ form.telefono.label_tag }}{{ form.telefono }}</div>
+        <div class="col-md-4">{{ form.capacidad_kg.label_tag }}{{ form.capacidad_kg }}</div>
+        <div class="col-12">{{ form.observacion.label_tag }}{{ form.observacion }}</div>
+        <div class="col-12">
+            <div class="form-check">{{ form.activo }} {{ form.activo.label_tag }}</div>
+        </div>
+        <div class="col-12">
+            <button type="submit" class="btn btn-success">Guardar</button>
+            <a href="{% url 'transportes:lista_transportes' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div></div>
+{% endblock %}

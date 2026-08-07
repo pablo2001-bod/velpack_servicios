@@ -1,0 +1,276 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<!-- Botones de acción (Se ocultan automáticamente al imprimir) -->
+<div class="container my-3 d-print-none text-end" style="max-width: 800px;">
+    <button onclick="window.print()" class="btn btn-dark shadow-sm">
+        <i class="fas fa-print me-1"></i> Imprimir Guía de Remisión
+    </button>
+    <a href="{% url 'despachos:lista' %}" class="btn btn-secondary shadow-sm ms-2">Volver</a>
+</div>
+
+<!-- ===================== ZONA DE IMPRESIÓN ===================== -->
+<div class="container bg-white p-3 border border-dark mx-auto" id="printableArea" style="max-width: 800px;">
+
+    <!-- ===================== ENCABEZADO ===================== -->
+    <div class="border border-dark mb-3">
+        <div class="row g-0">
+            <!-- Empresa -->
+            <div class="col-7 border-end border-dark p-3">
+                <h3 class="fw-bold mb-0">VELPACK S.A.</h3>
+                <div class="text-muted mb-2">Ideas Ecológicamente Reciclables</div>
+
+                <table class="table table-borderless table-sm mb-0" style="font-size:13px;">
+                    <tr>
+                        <td width="35%"><strong>Dirección:</strong></td>
+                        <td>Av. Eloy Alfaro y Los Molinos, Latacunga</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ciudad:</strong></td>
+                        <td>Latacunga - Ecuador</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Contribuyente:</strong></td>
+                        <td>Especial 011</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Agente Retención:</strong></td>
+                        <td>Resolución No. 1</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Documento -->
+            <div class="col-5 p-3">
+                <div class="border border-dark p-2">
+                    <div class="text-center">
+                        <strong>R.U.C.</strong>
+                        <h5 class="fw-bold mb-2">0591746284001</h5>
+                        <h4 class="fw-bold mb-2" style="font-size: 1.1rem;">GUÍA DE REMISIÓN</h4>
+                    </div>
+
+                    <table class="table table-borderless table-sm mb-0" style="font-size:13px;">
+                        <tr>
+                            <td><strong>No.</strong></td>
+                            <td>{{ despacho.numero_guia }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Ambiente</strong></td>
+                            <td>PRODUCCIÓN</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Emisión</strong></td>
+                            <td>NORMAL</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== TRANSPORTISTA ===================== -->
+    <div class="border border-dark mb-3">
+        <div class="bg-light border-bottom border-dark px-2 py-1 fw-bold" style="background-color: #efefef !important;">
+            DATOS DEL TRANSPORTISTA
+        </div>
+        <div class="p-2">
+            <table class="table table-borderless table-sm mb-0 small">
+                <tr>
+                    <td width="25%"><strong>Identificación</strong></td>
+                    <td width="25%">{{ despacho.transporte.identificacion|default:"S/N" }}</td>
+                    <td width="20%"><strong>Conductor</strong></td>
+                    <td>{{ despacho.transporte.conductor }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Placa</strong></td>
+                    <td>{{ despacho.transporte.placa }}</td>
+                    <td><strong>Punto Partida</strong></td>
+                    <td>LATACUNGA</td>
+                </tr>
+                <tr>
+                    <td><strong>Fecha Transporte</strong></td>
+                    <td>{{ despacho.fecha|date:"d/m/Y" }}</td>
+                    <td><strong>Estado</strong></td>
+                    <td>En tránsito</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===================== DESTINATARIO ===================== -->
+    <div class="border border-dark mb-3">
+        <div class="bg-light border-bottom border-dark px-2 py-1 fw-bold" style="background-color: #efefef !important;">
+            DATOS DEL DESTINATARIO
+        </div>
+        <div class="p-2">
+            <table class="table table-borderless table-sm mb-0 small">
+                <tr>
+                    <td width="20%"><strong>Cliente</strong></td>
+                    <td width="30%">{{ despacho.cliente.nombre }}</td>
+                    <td width="20%"><strong>RUC / C.I.</strong></td>
+                    <td>{{ despacho.cliente.ruc }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Destino</strong></td>
+                    <td colspan="3">{{ despacho.direccion_entrega }}</td>
+                </tr>
+                <tr>
+                    <td><strong>Motivo</strong></td>
+                    <td>VENTA</td>
+                    <td><strong>Ruta</strong></td>
+                    <td>LATACUNGA - SALCEDO</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===================== DETALLE DEL DESPACHO ===================== -->
+    <div class="border border-dark mb-3">
+        <div class="bg-light border-bottom border-dark px-2 py-2 fw-bold" style="background-color: #efefef !important;">
+            DETALLE DE LOS PRODUCTOS
+        </div>
+
+        <table class="table table-bordered border-dark mb-0 text-center align-middle">
+            <thead style="background:#ececec;">
+                <tr>
+                    <th style="width:8%">#</th>
+                    <th style="width:42%">VARIEDAD</th>
+                    <th style="width:30%">COLOR</th>
+                    <th style="width:20%">CANTIDAD</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for det in despacho.detalles.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td class="text-start">{{ det.variedad.nombre }}</td>
+                    <td>{{ det.color.nombre }}</td>
+                    <td class="fw-bold cantidad-item">{{ det.cantidad }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" class="text-center text-muted py-4">
+                        No existen productos registrados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="background:#f5f5f5;">
+                    <td colspan="3" class="text-end fw-bold fs-6">
+                        TOTAL DE PACAS
+                    </td>
+                    <td class="fw-bold fs-5" id="total-pacas-calculado">
+                        0
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <!-- ===================== INFORMACIÓN ADICIONAL ===================== -->
+    <div class="border border-dark mb-3" style="max-width: 350px;">
+        <div class="bg-light border-bottom border-dark px-2 py-1 fw-bold" style="background-color: #efefef !important;">
+            INFORMACIÓN ADICIONAL
+        </div>
+        <div class="p-2">
+            <table class="table table-borderless table-sm mb-0 small">
+                <tr>
+                    <td width="30%"><strong>Email</strong></td>
+                    <td>velpack.2021@gmail.com</td>
+                </tr>
+                <tr>
+                    <td><strong>Teléfono</strong></td>
+                    <td>03-2800-000</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===================== FIRMAS ===================== -->
+    <div style="height: 60px;"></div>
+
+    <div class="row text-center small">
+        <div class="col-4">
+            <div style="border-top:1px solid #000; width:85%; margin:auto; padding-top: 35px;">
+                <strong>Despachador</strong><br>
+                <small class="text-muted">VELPACK S.A.</small>
+            </div>
+        </div>
+        <div class="col-4">
+            <div style="border-top:1px solid #000; width:85%; margin:auto; padding-top: 35px;">
+                <strong>Transportista</strong><br>
+                <small class="text-muted">Conductor Responsable</small>
+            </div>
+        </div>
+        <div class="col-4">
+            <div style="border-top:1px solid #000; width:85%; margin:auto; padding-top: 35px;">
+                <strong>Recibí Conforme</strong><br>
+                <small class="text-muted">Cliente</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4 small text-muted">
+        <div class="col-6">
+            Fecha de recepción: ______________________
+        </div>
+        <div class="col-6 text-end">
+            Hora: ______________________
+        </div>
+    </div>
+
+    <hr class="mt-4">
+
+    <div class="text-center">
+        <small class="text-muted" style="font-size: 11px;">
+            Documento generado automáticamente por el Sistema de Inventario Velpack.
+        </small>
+    </div>
+
+</div>
+
+<!-- Script para sumar pacas dinámicamente -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        let total = 0;
+        const items = document.querySelectorAll('.cantidad-item');
+
+        items.forEach(item => {
+            const valor = parseFloat(item.textContent.trim()) || 0;
+            total += valor;
+        });
+
+        document.getElementById('total-pacas-calculado').textContent = total;
+    });
+</script>
+
+<!-- Estilos para impresión limpia en 1 sola hoja -->
+<style>
+    @media print {
+        @page {
+            size: A4 portrait;
+            margin: 5mm;
+        }
+        body * {
+            visibility: hidden !important;
+        }
+        #printableArea, #printableArea * {
+            visibility: visible !important;
+        }
+        #printableArea {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            border: none !important;
+            box-shadow: none !important;
+            margin: 0 !important;
+            padding: 5mm !important;
+        }
+    }
+</style>
+
+{% endblock %}

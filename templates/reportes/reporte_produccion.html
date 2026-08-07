@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <a href="{% url 'reportes:panel' %}" class="btn btn-outline-secondary btn-sm mb-2">
+                    <i class="bi bi-arrow-left me-1"></i> Volver al Panel
+                </a>
+                <h5 class="mb-0 fw-bold text-dark">
+                    <i class="bi bi-box-seam me-2 text-success"></i> Reporte de Producción de Pacas
+                </h5>
+            </div>
+            
+            <!-- Filtro por Fechas -->
+            <form method="get" class="d-flex align-items-center gap-2">
+                <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}" class="form-control form-control-sm">
+                <span>hasta</span>
+                <input type="date" name="fecha_fin" value="{{ fecha_fin }}" class="form-control form-control-sm">
+                <button type="submit" class="btn btn-success btn-sm">Filtrar</button>
+                <a href="{% url 'reportes:reporte_produccion' %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>
+            </form>
+
+            <div>
+                <a href="{% url 'reportes:exportar_produccion_excel' %}?fecha_inicio={{ fecha_inicio }}&fecha_fin={{ fecha_fin }}" class="btn btn-success btn-sm">
+                    <i class="bi bi-file-earmark-excel me-1"></i> Descargar Excel
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th> <!-- Columna ID añadida -->
+            <th>Código Único</th>
+            <th>Fecha</th>
+            <th>Operador</th>
+            <th>Producto / Variedad</th>
+            <th>Color</th>
+            <th>Lote</th>
+            <th>N° Paca</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for paca in pacas %}
+        <tr>
+            <td class="text-muted">{{ paca.id }}</td> <!-- Valor del ID -->
+            <td class="fw-bold text-success">{{ paca.codigo_unico }}</td>
+            <td>{{ paca.detalle.produccion.fecha }}</td>
+            <td>{{ paca.detalle.produccion.operador.nombre_completo }}</td>
+            <td>{{ paca.detalle.producto }}</td>
+            <td>
+                <span class="badge bg-secondary">{{ paca.detalle.color }}</span>
+            </td>
+            <td>{{ paca.lote }}</td>
+            <td>{{ paca.numero_paca }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="8" class="text-center text-muted py-4">
+                No hay registros de producción para mostrar en este rango de fechas.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+            </div>
+        </div>
+    </div>
+
+
+    
+</div>
+{% endblock %}

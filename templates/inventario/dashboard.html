@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">
+            <i class="bi bi-speedometer2 me-2 text-success"></i>Inventario y Producción
+        </h2>
+    </div>
+
+    <!-- Desglose de Materia Prima por Tipo -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-boxes me-2 text-success"></i> Materia Prima Ingresada por Tipo</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Tipo de Material / Insumo</th>
+                            <th class="text-end">Peso Total Acumulado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in materia_prima_por_tipo %}
+                        <tr>
+                            <td class="fw-bold">{{ item.tipo_material }}</td>
+                            <td class="text-end"><span class="badge bg-success fs-6">{{ item.total_peso|floatformat:2 }} kg</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-center text-muted py-4">No hay registros de materia prima.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stock Actual por Modelo y Color -->
+    <div class="card shadow-sm border-0 mb-4 p-3">
+        <h5 class="fw-bold mb-3 text-dark">
+            <i class="bi bi-table me-2 text-success"></i> Stock Actual por Modelo y Color
+        </h5>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Color</th>
+                        <th>Inicial</th>
+                        <th>Mediana</th>
+                        <th>Gruesa</th>
+                        <th>Extra</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="fw-bold">Amarillo</td>
+                        <td>{{ amarillo_inicial|default:"0" }}</td>
+                        <td>{{ amarillo_mediana|default:"0" }}</td>
+                        <td>{{ amarillo_gruesa|default:"0" }}</td>
+                        <td>{{ amarillo_extra|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Verde</td>
+                        <td>{{ verde_inicial|default:"0" }}</td>
+                        <td>{{ verde_mediana|default:"0" }}</td>
+                        <td>{{ verde_gruesa|default:"0" }}</td>
+                        <td>{{ verde_extra|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Gris</td>
+                        <td>{{ gris_inicial|default:"0" }}</td>
+                        <td>{{ gris_mediana|default:"0" }}</td>
+                        <td>{{ gris_gruesa|default:"0" }}</td>
+                        <td>{{ gris_extra|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Natural</td>
+                        <td>{{ natural_inicial|default:"0" }}</td>
+                        <td>{{ natural_mediana|default:"0" }}</td>
+                        <td>{{ natural_gruesa|default:"0" }}</td>
+                        <td>{{ natural_extra|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Morado</td>
+                        <td>{{ morado_inicial|default:"0" }}</td>
+                        <td>{{ morado_mediana|default:"0" }}</td>
+                        <td>{{ morado_gruesa|default:"0" }}</td>
+                        <td>{{ morado_extra|default:"0" }}</td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold">Palo de Rosa</td>
+                        <td>{{ palorosa_inicial|default:"0" }}</td>
+                        <td>{{ palorosa_mediana|default:"0" }}</td>
+                        <td>{{ palorosa_gruesa|default:"0" }}</td>
+                        <td>{{ palorosa_extra|default:"0" }}</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="table-active fw-bold">
+                        <td>TOTAL</td>
+                        <td>{{ total_inicial|default:"0" }}</td>
+                        <td>{{ total_mediana|default:"0" }}</td>
+                        <td>{{ total_gruesa|default:"0" }}</td>
+                        <td>{{ total_extragruesa|default:"0" }}</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <!-- Apartado para Cubetas Especiales (Total Físico Independiente) -->
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-light p-3">
+                <div class="d-flex align-items-center">
+                    <div class="flex-grow-1">
+                        <h6 class="text-muted fw-bold mb-1">Cubetas Especial</h6>
+                        <h3 class="fw-bold text-success mb-0">{{ total_cubetas_especial|default:"0" }} <span class="fs-6 text-muted">Pacas</span></h3>
+                    </div>
+                    <div class="ms-3">
+                        <i class="bi bi-box-seam fs-1 text-success"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

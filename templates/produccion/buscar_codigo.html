@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Buscar Código de Paca
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold">
+                Buscador de Pacas
+            </h2>
+            <p class="text-muted">
+                Escanee o ingrese el código único.
+            </p>
+        </div>
+    </div>
+
+    <!-- Caja del Buscador Principal -->
+    <div class="box shadow-sm rounded bg-white p-4 mb-4">
+        <form method="GET" action="{% url 'produccion:buscar_codigo' %}" autocomplete="off" class="row g-3 align-items-center">
+            <!-- CORREGIDO: Se restauró este div contenedor para el input -->
+            <div class="col-md-9">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-success text-white" id="scan-icon">
+                        🔍
+                    </span>
+                    <input 
+                        type="text" 
+                        name="codigo" 
+                        class="form-control" 
+                        placeholder="Escanee o escriba el código de paca (Ej: PROD-COL-160726...)" 
+                        value="{{ codigo }}"
+                        required
+                        autofocus>
+                </div>
+            </div>
+            <!-- Botón alineado en la misma fila -->
+            <div class="col-md-3 d-grid">
+                <button type="submit" class="btn btn-success btn-lg shadow-sm">
+                    Buscar Paca
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Si ocurre un error o no se encuentra el código -->
+    {% if error_mensaje %}
+        <div class="alert alert-danger shadow-sm d-flex align-items-center" role="alert">
+            <span class="fs-4 me-2">⚠️</span>
+            <div>
+                {{ error_mensaje }}
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Si se encuentra la Paca, mostramos toda su ficha técnica -->
+    {% if paca %}
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="card shadow border-0 rounded">
+                    <!-- Cabecera de la Ficha -->
+                    <div class="card-header bg-success text-white py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="fw-bold mb-0">📄 Ficha Técnica de la Paca</h5>
+                        <span class="badge bg-light text-success fw-bold px-3 py-2 fs-6 rounded-pill">
+                            Paca N° {{ paca.numero_paca }}
+                        </span>
+                    </div>
+                    
+                    <!-- Cuerpo con los Detalles -->
+                    <div class="card-body p-4 bg-light">
+                        <div class="text-center mb-4">
+                            <small class="text-muted d-block text-uppercase fw-bold">Código de Barra Único</small>
+                            <h3 class="fw-bold text-dark font-monospace bg-white p-3 rounded border border-success d-inline-block mt-1">
+                                {{ paca.codigo_unico }}
+                            </h3>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="row g-3">
+                            <!-- Producto -->
+                            <div class="col-sm-6">
+                                <label class="text-muted small fw-bold d-block">Modelo / Producto</label>
+                                <span class="fs-5 fw-bold text-dark">{{ paca.detalle.producto.nombre }}</span>
+                            </div>
+
+                            <!-- Color -->
+                            <div class="col-sm-6">
+                                <label class="text-muted small fw-bold d-block">Color Registrado</label>
+                                <span class="fs-5 fw-bold text-dark">
+                                    🟢 {{ paca.detalle.color.nombre }}
+                                </span>
+                            </div>
+
+                            <!-- Fecha de Producción -->
+                            <div class="col-sm-6">
+                                <label class="text-muted small fw-bold d-block">Fecha de Fabricación</label>
+                                <span class="fs-6 text-secondary fw-semibold">
+                                    {{ paca.detalle.produccion.fecha|date:"d \d\e F \d\e Y" }}
+                                </span>
+                            </div>
+
+                            <!-- Operador Responsable -->
+                            <div class="col-sm-6">
+                                <label class="text-muted small fw-bold d-block">Operador Encargado</label>
+                                <span class="fs-6 text-secondary fw-semibold">
+                                    {% if paca.detalle.produccion.operador.user.get_full_name %}
+                                        {{ paca.detalle.produccion.operador.user.get_full_name }}
+                                    {% else %}
+                                        {{ paca.detalle.produccion.operador }}
+                                    {% endif %}
+                                </span>
+                            </div>
+
+                            <!-- Lote -->
+                            <div class="col-sm-6">
+                                <label class="text-muted small fw-bold d-block">Lote de Trabajo</label>
+                                <span class="badge bg-secondary px-3 py-2 fs-6 mt-1">
+                                    Lote #{{ paca.lote }}
+                                </span>
+                            </div>
+
+                            <!-- Observaciones generales de la jornada -->
+                            <div class="col-12">
+                                <hr class="my-3">
+                                <label class="text-muted small fw-bold d-block">Observaciones de la Producción</label>
+                                <p class="text-dark bg-white p-3 rounded border mt-1 mb-0 italic">
+                                    {{ paca.detalle.produccion.observacion|default:"Sin novedades u observaciones registradas para esta jornada de producción." }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción Rápidos -->
+                    <div class="card-footer bg-white py-3 text-end">
+                        <a href="{% url 'produccion:buscar_codigo' %}" class="btn btn-danger btn-sm">
+                             Cerrar Ficha
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}
