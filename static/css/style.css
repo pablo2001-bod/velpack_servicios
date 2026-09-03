@@ -279,3 +279,24 @@ body{
     margin-top:20px;
 
 }
+/* ===========================
+   DISEÑO RESPONSIVO MÓVIL
+=========================== */
+@media (max-width: 991.98px) {
+    .sidebar {
+        /* Ocultamos la barra lateral por defecto en móviles */
+        transform: translateX(-260px);
+        transition: transform 0.3s ease-in-out;
+        z-index: 1050;
+    }
+
+    .sidebar.show {
+        /* Clase para mostrarla cuando el usuario active el menú */
+        transform: translateX(0);
+    }
+
+    .main {
+        margin-left: 0 !important;
+        width: 100% !important;
+    }
+}

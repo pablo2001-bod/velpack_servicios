@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid px-4 py-4">
+    <!-- Encabezado Estilizado -->
+   <!-- Encabezado Estilizado -->
+    <div class="card text-white border-0 shadow-sm rounded-3 p-4 mb-4" style="background: #198754 !important;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold mb-1">PANEL DE INTELIGENCIA</h2>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Resumen Superior -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                <div class="text-muted small fw-bold text-uppercase">Total Producción</div>
+                <h2 class="fw-bold text-success mt-2 mb-0">
+                    {% if produccion_por_modelo %}
+                        {{ produccion_por_modelo.0.total|default:"50" }} <span class="fs-6 text-muted fw-normal">Pacas</span>
+                    {% else %}
+                        0
+                    {% endif %}
+                </h2>
+                <span class="text-success small mt-2 d-block"><i class="bi bi-arrow-up-right"><b> En Planta</b></i></span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                <div class="text-muted small fw-bold text-uppercase">Producto Estrella</div>
+                <h5 class="fw-bold text-dark mt-2 mb-0 text-truncate">
+                    {% if productos_mas_vendidos %}
+                        {{ productos_mas_vendidos.0.modelo__nombre }}
+                    {% else %}
+                        Cubeta Inicial - Morado
+                    {% endif %}
+                </h5>
+                <span class="text-muted small mt-2 d-block">Mayor rotación comercial</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                <div class="text-muted small fw-bold text-uppercase">Cliente Más Activo</div>
+                <h5 class="fw-bold text-dark mt-2 mb-0 text-truncate">
+                    {% if clientes_activos %}
+                        {{ clientes_activos.0.cliente__nombre }}
+                    {% else %}
+                        Danilo Tisaleña
+                    {% endif %}
+                </h5>
+                <span class="text-primary small mt-2 d-block"><i class="bi bi-check-circle-fill"></i> Frecuencia Alta</span>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-3 p-3 bg-white h-100">
+                <div class="text-muted small fw-bold text-uppercase">Proveedor Principal</div>
+                <h5 class="fw-bold text-dark mt-2 mb-0 text-truncate">
+                    {% if proveedores_principales %}
+                        {{ proveedores_principales.0.proveedor__nombre }}
+                    {% else %}
+                        Gestión Activa
+                    {% endif %}
+                </h5>
+                <span class="text-muted small mt-2 d-block">Ingresos de Materia Prima</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fila 1 de Gráficos: Producción (Barras) y Distribución de Clientes (Dona) -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-fill me-2 text-success"></i>Volumen de Producción por Modelo</h5>
+                <div style="height: 280px;">
+                    <canvas id="graficoProduccion"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-pie-chart-fill me-2 text-success"></i>Participación de Clientes</h5>
+                <div style="height: 250px;" class="d-flex justify-content-center align-items-center">
+                    <canvas id="graficoClientes"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fila 2 de Gráficos: Tendencia de Ventas (Líneas) y Proveedores (Barras horizontales) -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-graph-up-arrow me-2 text-success"></i>Tendencia de Salida / Ventas</h5>
+                <div style="height: 260px;">
+                    <canvas id="graficoVentas"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-truck me-2 text-success"></i>Entregas de Materia Prima por Proveedor</h5>
+                <div style="height: 260px;">
+                    <canvas id="graficoProveedores"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tablas de Detalle Inferiores -->
+    <div class="row g-4">
+        <!-- Detalle de Producción -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-box-seam me-2 text-success"></i>Detalle de Pacas Producidas</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Modelo / Color</th>
+                                <th class="text-end">Total Pacas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in produccion_por_modelo %}
+                            <tr>
+                                <td>{{ item.detalle__producto__nombre }} - {{ item.detalle__color__nombre }}</td>
+                                <td class="text-end fw-bold text-success">{{ item.total }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted py-3">Sin registros recientes.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Productos Más Vendidos -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-3 p-4 bg-white h-100">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-cart-check-fill me-2 text-success"></i>Productos Más Vendidos</h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Modelo / Color</th>
+                                <th class="text-end">Pacas Vendidas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in productos_mas_vendidos %}
+                            <tr>
+                                <td>{{ item.modelo__nombre }} - {{ item.color__nombre }}</td>
+                                <td class="text-end fw-bold text-primary">{{ item.cantidad_total }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="2" class="text-center text-muted py-3">No hay registros de ventas todavía.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script de Chart.js con los 4 gráficos configurados -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 1. Gráfico de Barras: Producción
+    const ctxProd = document.getElementById('graficoProduccion').getContext('2d');
+    new Chart(ctxProd, {
+        type: 'bar',
+        data: {
+            labels: [{% for item in produccion_por_modelo %}'{{ item.detalle__producto__nombre }} ({{ item.detalle__color__nombre }})',{% endfor %}],
+            datasets: [{
+                label: 'Pacas Producidas',
+                data: [{% for item in produccion_por_modelo %}{{ item.total }},{% endfor %}],
+                backgroundColor: '#198754',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // 2. Gráfico Circular (Doughnut): Clientes
+    const ctxCli = document.getElementById('graficoClientes').getContext('2d');
+    new Chart(ctxCli, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for cliente in clientes_activos %}'{{ cliente.cliente__nombre }}',{% endfor %}],
+            datasets: [{
+                data: [{% for cliente in clientes_activos %}{{ cliente.total_compras }},{% endfor %}],
+                backgroundColor: ['#198754', '#ffc107', '#0dcaf0', '#6c757d', '#20c997']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // 3. Gráfico de Líneas: Tendencia de Ventas
+    const ctxVentas = document.getElementById('graficoVentas').getContext('2d');
+    new Chart(ctxVentas, {
+        type: 'line',
+        data: {
+            labels: [{% for item in productos_mas_vendidos %}'{{ item.modelo__nombre }}',{% endfor %}],
+            datasets: [{
+                label: 'Volumen Comercial',
+                data: [{% for item in productos_mas_vendidos %}{{ item.cantidad_total }},{% endfor %}],
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                fill: true,
+                tension: 0.3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+
+    // 4. Gráfico de Barras Horizontales: Proveedores
+    const ctxProv = document.getElementById('graficoProveedores').getContext('2d');
+    new Chart(ctxProv, {
+        type: 'bar',
+        data: {
+            labels: [{% for prov in proveedores_principales %}'{{ prov.proveedor__nombre }}',{% endfor %}],
+            datasets: [{
+                label: 'Entregas',
+                data: [{% for prov in proveedores_principales %}{{ prov.total_ingresos }},{% endfor %}],
+                backgroundColor: '#ffc107',
+                borderRadius: 6
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true } }
+        }
+    });
+</script>
+{% endblock %}

@@ -27,9 +27,6 @@
 
         <div class="content">
 
-            <!-- ========================================== -->
-            <!-- BLOQUE DE NOTIFICACIONES / MENSAJES FLOTANTES -->
-            <!-- ========================================== -->
             {% if messages %}
                 <div class="container-fluid mb-3">
                     {% for message in messages %}
@@ -47,7 +44,6 @@
                     {% endfor %}
                 </div>
             {% endif %}
-            <!-- ========================================== -->
 
             {% block content %}
             {% endblock %}
