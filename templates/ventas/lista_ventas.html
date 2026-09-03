@@ -17,16 +17,16 @@
         <a href="{% url 'ventas:crear_venta' %}" class="btn btn-success"><i class="fas fa-plus"></i> Nueva Venta</a>
     </div>
 
-    <table class="table table-striped table-hover">
+    <table class="table table-striped table-hover align-middle">
         <thead>
             <tr>
                 <th>Factura</th>
                 <th>Fecha</th>
                 <th>Cliente (RUC)</th>
-                <th>Detalles (Resumen)</th>
+                <th>Pago / Estado</th>
                 <th>Total Pacas</th>
                 <th>Total</th>
-                <th>Acciones</th>
+                <th class="text-center">Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -36,18 +36,26 @@
                 <td>{{ v.fecha|date:"d/m/Y" }}</td>
                 <td>{{ v.cliente.nombre }} ({{ v.cliente.ruc }})</td>
                 <td>
-                    {% for detalle in v.detalles.all %}
-                        <div class="mb-1">
-                            {{ detalle.modelo.nombre }} / {{ detalle.color.nombre }} / {{ detalle.cantidad_pacas }} pacas
-                        </div>
-                    {% endfor %}
+                    <span class="text-capitalize text-muted small d-block"><i class="fas fa-wallet"></i> {{ v.metodo_pago }}</span>
+                    {% if v.estado_pago == 'pagado' %}
+                        <span class="badge bg-success">Pagado</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">Por cobrar</span>
+                    {% endif %}
                 </td>
                 <td class="fw-bold">{{ v.total_pacas }}</td>
                 <td><strong>${{ v.total }}</strong></td>
-                <td>
-                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalDetalle{{v.id}}">
-                         <i class="fas fa-eye"></i> Detalles
+                <td class="text-center">
+                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalDetalle{{v.id}}" title="Ver Detalles">
+                        <i class="fas fa-eye me-1"></i> <span style="font-style: normal;">Detalles</span>
                     </button>
+                    
+                    <!-- El botón de editar solo se muestra si la venta está pendiente (Por cobrar) -->
+                    {% if v.estado_pago == 'pendiente' %}
+                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEditarPago{{v.id}}" title="Cambiar Estado de Pago">
+                            <i class="fas fa-edit me-1"></i> <span style="font-style: normal;">Cambiar Estado</span>
+                        </button>
+                    {% endif %}
                 </td>
             </tr>
             {% empty %}
@@ -59,7 +67,7 @@
     </table>
 </div>
 
-<!-- Modales -->
+<!-- Modales de Detalles e Impresión -->
 {% for v in ventas %}
 <div class="modal fade" id="modalDetalle{{v.id}}" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -77,7 +85,9 @@
                         <strong>Dir:</strong> {{ v.cliente.direccion }}</p>
                     </div>
                     <div class="col-md-6 text-md-end">
-                        <p><strong>Total Pacas:</strong> {{ v.total_pacas }}<br>
+                        <p><strong>Método de Pago:</strong> <span class="text-capitalize">{{ v.metodo_pago }}</span><br>
+                        <strong>Estado:</strong> <span class="text-capitalize">{{ v.get_estado_pago_display }}</span><br>
+                        <strong>Total Pacas:</strong> {{ v.total_pacas }}<br>
                         <strong class="fs-4">Total: ${{ v.total }}</strong></p>
                     </div>
                 </div>
@@ -98,6 +108,41 @@
                 </button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Modal para Modificar Estado de Pago -->
+<div class="modal fade" id="modalEditarPago{{v.id}}" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'ventas:actualizar_estado_pago' v.id %}">
+            {% csrf_token %}
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modificar Estado de Factura #{{ v.numero_factura }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Método de Pago:</label>
+                        <select name="metodo_pago" class="form-select">
+                            <option value="efectivo" {% if v.metodo_pago == 'efectivo' %}selected{% endif %}>Efectivo</option>
+                            <option value="transferencia" {% if v.metodo_pago == 'transferencia' %}selected{% endif %}>Transferencia</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Estado de la Venta:</label>
+                        <select name="estado_pago" class="form-select">
+                            <option value="pagado" {% if v.estado_pago == 'pagado' %}selected{% endif %}>Pagado</option>
+                            <option value="pendiente" {% if v.estado_pago == 'pendiente' %}selected{% endif %}>Por cobrar (Pendiente)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 {% endfor %}

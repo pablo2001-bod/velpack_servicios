@@ -97,8 +97,7 @@ def dashboard_inventario(request):
     total_extragruesa = amarillo_extra + verde_extra + gris_extra + natural_extra + morado_extra + palorosa_extra
 
     # Total para Cubetas Especial / Segunda
-    total_cubetas_especial = obtener_total_modelo(["Cubetas Especial", "Cubeta Segunda"])
-
+    total_cubetas_especial = obtener_total_modelo(["Cubetas Especial", "Cubeta Segunda", "Cubeta de Segunda"])
     context = {
         'materia_prima_por_tipo': materia_prima_por_tipo,
         'total_cubetas_especial': total_cubetas_especial,

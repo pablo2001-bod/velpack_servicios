@@ -9,4 +9,5 @@ urlpatterns = [
     
     # Registro de nueva venta (Con confirmación antes de guardar)
     path('crear/', views.crear_venta, name='crear_venta'),
+    path('venta/actualizar-pago/<int:pk>/', views.actualizar_estado_pago, name='actualizar_estado_pago'),
 ]

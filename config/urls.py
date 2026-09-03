@@ -30,6 +30,7 @@ urlpatterns = [
     path('despachos/', include(('apps.despachos.urls', 'despachos'))),
     path('reportes/', include(('apps.reportes.urls', 'reportes'))),
     path('inventario/', include(('apps.inventario.urls', 'inventario'), namespace='inventario')),
+    path('operador/', include('apps.operadores.urls')),
 ]
 
 if settings.DEBUG:

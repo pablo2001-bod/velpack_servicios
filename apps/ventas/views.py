@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
 from django.db import transaction
@@ -32,10 +32,13 @@ def crear_venta(request):
             with transaction.atomic():
                 perfil, _ = PerfilUsuario.objects.get_or_create(usuario=request.user)
                 
+                # Se capturan y guardan el método de pago y el estado de pago del formulario
                 venta = Venta.objects.create(
                     numero_factura=request.POST.get('numero_factura'),
                     cliente_id=request.POST.get('cliente'),
                     usuario=perfil,
+                    metodo_pago=request.POST.get('metodo_pago', 'efectivo'),
+                    estado_pago=request.POST.get('estado_pago', 'pagado'),
                     observacion=request.POST.get('observacion', '')
                 )
                 
@@ -72,3 +75,20 @@ def crear_venta(request):
         'modelos': Producto.objects.all(),
         'colores': Color.objects.all()
     })
+
+@staff_member_required
+def actualizar_estado_pago(request, pk):
+    """Vista para actualizar el método y estado de pago desde la lista de ventas."""
+    venta = get_object_or_404(Venta, pk=pk)
+    
+    # Bloquear si la venta ya está pagada (seguridad en el backend)
+    if venta.estado_pago == 'pagado':
+        messages.error(request, f"La factura #{venta.numero_factura} ya está pagada y no se puede modificar.")
+        return redirect('ventas:lista_ventas')
+
+    if request.method == 'POST':
+        venta.metodo_pago = request.POST.get('metodo_pago', venta.metodo_pago)
+        venta.estado_pago = request.POST.get('estado_pago', venta.estado_pago)
+        venta.save()
+        messages.success(request, f"Se actualizó el estado de la factura #{venta.numero_factura} correctamente.")
+    return redirect('ventas:lista_ventas')

@@ -7,11 +7,26 @@ from apps.catalogos.models import Producto, Color
 from apps.produccion.models import DetalleProduccion
 
 class Venta(models.Model):
+    METODO_PAGO_CHOICES = [
+        ('efectivo', 'Efectivo'),
+        ('transferencia', 'Transferencia'),
+    ]
+    
+    ESTADO_PAGO_CHOICES = [
+        ('pagado', 'Pagado'),
+        ('pendiente', 'Por cobrar (Pendiente)'),
+    ]
+
     numero_factura = models.CharField(max_length=25, unique=True)
     cliente = models.ForeignKey(Cliente, on_delete=models.PROTECT, related_name="ventas")
     usuario = models.ForeignKey(PerfilUsuario, on_delete=models.PROTECT, null=True, blank=True)
     fecha = models.DateField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    
+    # Nuevos campos integrados
+    metodo_pago = models.CharField(max_length=20, choices=METODO_PAGO_CHOICES, default='efectivo')
+    estado_pago = models.CharField(max_length=20, choices=ESTADO_PAGO_CHOICES, default='pagado')
+    
     observacion = models.TextField(blank=True, null=True)
 
     class Meta:

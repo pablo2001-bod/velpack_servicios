@@ -123,8 +123,6 @@ def exportar_materia_prima_excel(request):
     wb.save(response)
     return response
 
-
-# ==================== 5. PRODUCCIÓN ====================
 # ==================== 5. PRODUCCIÓN ====================
 @staff_member_required
 def reporte_produccion(request):
@@ -179,7 +177,6 @@ def exportar_produccion_excel(request):
     wb.save(response)
     return response
 
-
 # ==================== 6. VENTAS ====================
 @staff_member_required
 def reporte_ventas(request):
@@ -190,24 +187,62 @@ def reporte_ventas(request):
     if fin:
         ventas = ventas.filter(fecha__lte=fin)
     ventas = ventas.order_by('-fecha')
-    total_vendido = sum(v.total for v in ventas)
     
-    context = {'ventas': ventas, 'total_vendido': total_vendido, 'fecha_inicio': request.GET.get('fecha_inicio', ''), 'fecha_fin': request.GET.get('fecha_fin', '')}
+    # Cálculos separados
+    total_cobrado = sum(v.total for v in ventas if v.estado_pago == 'pagado')
+    total_por_cobrar = sum(v.total for v in ventas if v.estado_pago == 'pendiente')
+    
+    context = {
+        'ventas': ventas, 
+        'total_cobrado': total_cobrado,
+        'total_por_cobrar': total_por_cobrar,
+        'fecha_inicio': request.GET.get('fecha_inicio', ''), 
+        'fecha_fin': request.GET.get('fecha_fin', '')
+    }
     return render(request, 'reportes/reporte_ventas.html', context)
 
 @staff_member_required
 def exportar_ventas_excel(request):
     inicio, fin = _obtener_fechas_filtro(request)
     ventas = Venta.objects.all()
-    if inicio: ventas = ventas.filter(fecha__gte=inicio)
-    if fin: ventas = ventas.filter(fecha__lte=fin)
+    if inicio: 
+        ventas = ventas.filter(fecha__gte=inicio)
+    if fin: 
+        ventas = ventas.filter(fecha__lte=fin)
     
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Ventas"
-    ws.append(['N° Factura', 'Fecha', 'Cliente', 'RUC Cliente', 'Total ($)', 'Observación'])
+    
+    # Cabeceras del Excel
+    ws.append(['N° Factura', 'Fecha', 'Cliente', 'RUC Cliente', 'Método de Pago', 'Estado', 'Total ($)', 'Observación'])
+    
+    # Filas de datos
     for v in ventas.order_by('-fecha'):
-        ws.append([v.numero_factura, str(v.fecha), v.cliente.nombre, v.cliente.ruc, float(v.total), v.observacion or ''])
+        estado_texto = "Pagado" if v.estado_pago == 'pagado' else "Por cobrar"
+        ws.append([
+            v.numero_factura, 
+            str(v.fecha), 
+            v.cliente.nombre, 
+            v.cliente.ruc, 
+            v.metodo_pago,
+            estado_texto,
+            float(v.total), 
+            v.observacion or ''
+        ])
+    
+    # Calcular los totales por separado
+    total_por_cobrar = sum(float(v.total) for v in ventas if v.estado_pago == 'pendiente')
+    total_cobrado = sum(float(v.total) for v in ventas if v.estado_pago == 'pagado')
+    
+    # Dejar un espacio de filas vacías y agregar la sección de totales al final
+    ws.append([]) # Fila vacía
+    ws.append([]) # Fila vacía
+    
+    # Etiquetas de totales (en columnas F y G por ejemplo, o ajustadas a tu diseño)
+    ws.append(['', '', '', '', '', 'Por Cobrar', 'Cobrado'])
+    ws.append(['', '', '', '', '', total_por_cobrar, total_cobrado])
+    
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename=reporte_ventas.xlsx'
     wb.save(response)

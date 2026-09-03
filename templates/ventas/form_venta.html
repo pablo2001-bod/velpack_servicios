@@ -18,12 +18,30 @@
         {% csrf_token %}
         
         <!-- Cabecera de Venta -->
-        <div class="row">
+        <div class="row mb-3">
             <div class="col-md-6">
                 {{ form.numero_factura.label_tag }} {{ form.numero_factura }}
             </div>
             <div class="col-md-6">
                 {{ form.cliente.label_tag }} {{ form.cliente }}
+            </div>
+        </div>
+
+        <!-- Fila de Método y Estado de Pago -->
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Método de Pago:</label>
+                <select name="metodo_pago" class="form-select">
+                    <option value="efectivo">Efectivo</option>
+                    <option value="transferencia">Transferencia</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold">Estado de Pago:</label>
+                <select name="estado_pago" class="form-select">
+                    <option value="pagado">Pagado</option>
+                    <option value="pendiente">Por cobrar (Pendiente)</option>
+                </select>
             </div>
         </div>
 
@@ -65,11 +83,12 @@
                 <input type="text" id="total_valor_display" class="form-control bg-light" value="0.00" readonly>
             </div>
         </div>
-        <!-- Modal -->
+
+        <!-- Modal de Resumen -->
         <div class="modal fade" id="modalResumen" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <div class="modal-header"><h5>¿Confirmar Venta?</h5></div>
+                    <div class="modal-header"><h5 class="modal-title">¿Confirmar Venta?</h5></div>
                     <div class="modal-body"><p>¿Estás seguro de registrar esta venta con sus detalles?</p></div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Corregir</button>

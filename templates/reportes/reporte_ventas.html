@@ -20,10 +20,22 @@
             </a>
         </div>
         <div class="card-body">
-            <div class="alert alert-success d-flex justify-content-between align-items-center mb-4">
-                <span class="fw-bold">Total Facturado en el Periodo:</span>
-                <span class="fs-4 fw-bold">$ {{ total_vendido|floatformat:2 }}</span>
+            <!-- Indicadores separados -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="alert alert-success d-flex justify-content-between align-items-center mb-0">
+                        <span class="fw-bold">Total Cobrado:</span>
+                        <span class="fs-4 fw-bold">$ {{ total_cobrado|floatformat:2 }}</span>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-warning d-flex justify-content-between align-items-center mb-0">
+                        <span class="fw-bold">Total por Cobrar (Pendiente):</span>
+                        <span class="fs-4 fw-bold">$ {{ total_por_cobrar|floatformat:2 }}</span>
+                    </div>
+                </div>
             </div>
+
             <div class="table-responsive">
                 <table class="table table-hover align-middle">
                     <thead class="table-light">
@@ -32,6 +44,7 @@
                             <th>Fecha</th>
                             <th>Cliente</th>
                             <th>RUC Cliente</th>
+                            <th>Pago / Estado</th>
                             <th>Total</th>
                             <th>Observación</th>
                         </tr>
@@ -40,14 +53,22 @@
                         {% for v in ventas %}
                         <tr>
                             <td class="fw-bold">{{ v.numero_factura }}</td>
-                            <td>{{ v.fecha }}</td>
+                            <td>{{ v.fecha|date:"d/m/Y" }}</td>
                             <td>{{ v.cliente.nombre }}</td>
                             <td>{{ v.cliente.ruc }}</td>
-                            <td class="text-success fw-bold">$ {{ v.total }}</td>
+                            <td>
+                                <span class="text-capitalize text-muted small d-block">{{ v.metodo_pago }}</span>
+                                {% if v.estado_pago == 'pagado' %}
+                                    <span class="badge bg-success">Pagado</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">Por cobrar</span>
+                                {% endif %}
+                            </td>
+                            <td class="fw-bold">$ {{ v.total }}</td>
                             <td>{{ v.observacion|default:"-" }}</td>
                         </tr>
                         {% empty %}
-                        <tr><td colspan="6" class="text-center text-muted py-4">No hay registros de ventas en este rango de fechas.</td></tr>
+                        <tr><td colspan="7" class="text-center text-muted py-4">No hay registros de ventas en este rango de fechas.</td></tr>
                         {% endfor %}
                     </tbody>
                 </table>

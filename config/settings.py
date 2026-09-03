@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'apps.transportes',
     'apps.reportes',
     'apps.catalogos',
+    'apps.operadores',
 ]
 
 MIDDLEWARE = [
