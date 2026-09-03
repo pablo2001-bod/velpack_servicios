@@ -4,6 +4,7 @@ Django settings for config project.
 
 from pathlib import Path
 import os
+import dj_database_url  # <-- Importante para leer la URL de PostgreSQL en Render
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -12,8 +13,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-&dqh^6imt3^zsixtxr$%u)gxpr$nre$ya%%1_l4bbgzi8++u09'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# En Render, se recomienda dejar esto en True mientras terminas de ajustar, 
-# pero idealmente debe ir en False para mayor seguridad.
 DEBUG = True
 
 ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
@@ -72,12 +71,13 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# Database
+# Database - Configuración híbrida (SQLite en local, PostgreSQL en Render automáticamente)
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        conn_max_age=600,
+        conn_health_checks_enabled=True,
+    )
 }
 
 # Password validation
