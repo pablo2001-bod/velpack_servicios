@@ -90,6 +90,12 @@ class DetalleVenta(models.Model):
         with transaction.atomic():
             # Guardamos el detalle de la venta
             super().save(*args, **kwargs)
-            
+
             # Actualizamos el total acumulado de la factura
             self.venta.actualizar_total()
+
+    def delete(self, *args, **kwargs):
+        venta = self.venta
+        resultado = super().delete(*args, **kwargs)
+        venta.actualizar_total()
+        return resultado

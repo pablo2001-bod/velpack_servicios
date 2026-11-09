@@ -9,12 +9,14 @@ class ProveedorAdmin(admin.ModelAdmin):
         "nombre",
         "ruc",
         "telefono",
+        "correo",
         "activo",
     )
 
     search_fields = (
         "nombre",
         "ruc",
+        "correo",
     )
 
     list_filter = (

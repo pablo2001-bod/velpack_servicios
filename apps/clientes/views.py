@@ -1,15 +1,17 @@
-from django.shortcuts import render, redirect
-from .models import Cliente
-from .forms import ClienteForm
-from django.shortcuts import render, redirect, get_object_or_404
-from .models import Cliente
-from .forms import ClienteForm
 from django.contrib.admin.views.decorators import staff_member_required
+from django.shortcuts import get_object_or_404, redirect, render
 
+from .forms import ClienteForm
+from .models import Cliente
+
+
+@staff_member_required
 def lista_clientes(request):
-    clientes = Cliente.objects.all()
+    clientes = Cliente.objects.all().order_by("nombre")
     return render(request, 'clientes/lista_clientes.html', {'clientes': clientes})
 
+
+@staff_member_required
 def crear_cliente(request):
     if request.method == 'POST':
         form = ClienteForm(request.POST)

@@ -1,75 +1,151 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Inicio
+Inicio | Velpack
 {% endblock %}
 
 {% block content %}
+<div class="container-fluid py-2 dashboard-page">
 
-<div class="container-fluid">
-
-    <div class="mb-4">
-        <!-- Nombre dinámico del usuario que inicia sesión -->
-        <h2 class="fw-bold">
-            ¡Hola nuevamente, {{ user.first_name|default:user.username }}!
-        </h2>
-    </div>
-
-    <!-- TARJETAS (Resumen de Totales por Modelo) -->
-    <div class="row">
-        <!-- Inicial -->
-        <div style="flex: 0 0 20%; max-width: 20%;" class="col-md-4 col-sm-6 mb-4">
-            <div class="card-dashboard">
-                <h6>Inicial</h6>
-                <h2 class="text-success fw-bold">{{ total_inicial|default:"0" }}</h2>
-                <small>Pacas</small>
+    <div class="dashboard-hero mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 position-relative">
+            <div>
+                <span class="hero-eyebrow">
+                    <i class="bi bi-calendar3"></i>
+                    {% now "l, j \d\e F \d\e Y" %}
+                </span>
+                <h1 class="hero-title">
+                    ¡Hola nuevamente, {{ user.first_name|default:user.username }}!
+                </h1>
             </div>
-        </div>
 
-        <!-- Mediana -->
-        <div style="flex: 0 0 20%; max-width: 20%;" class="col-md-4 col-sm-6 mb-4">
-            <div class="card-dashboard">
-                <h6>Mediana</h6>
-                <h2 class="text-success fw-bold">{{ total_mediana|default:"0" }}</h2>
-                <small>Pacas</small>
-            </div>
-        </div>
-
-        <!-- Gruesa -->
-        <div style="flex: 0 0 20%; max-width: 20%;" class="col-md-4 col-sm-6 mb-4">
-            <div class="card-dashboard">
-                <h6>Gruesa</h6>
-                <h2 class="text-success fw-bold">{{ total_gruesa|default:"0" }}</h2>
-                <small>Pacas</small>
-            </div>
-        </div>
-
-        <!-- Extragruesa -->
-        <div style="flex: 0 0 20%; max-width: 20%;" class="col-md-4 col-sm-6 mb-4">
-            <div class="card-dashboard">
-                <h6>Extragruesa</h6>
-                <h2 class="text-success fw-bold">{{ total_extragruesa|default:"0" }}</h2>
-                <small>Pacas</small>
-            </div>
-        </div>
-
-        <!-- Cubetas Especial -->
-        <div style="flex: 0 0 20%; max-width: 20%;" class="col-md-4 col-sm-6 mb-4">
-            <div class="card-dashboard">
-                <h6>Cubetas Especial</h6>
-                <h2 class="text-success fw-bold">{{ total_cubetas_especial|default:"0" }}</h2>
-                <small>Pacas</small>
+            <div class="d-flex flex-wrap gap-2">
+                <a href="{% url 'produccion:registrar' %}" class="btn btn-light quick-action">
+                    <i class="bi bi-clipboard-check"></i> Cronograma
+                </a>
+                {% if user.is_staff %}
+                <a href="{% url 'ventas:crear_venta' %}" class="btn btn-light quick-action">
+                    <i class="bi bi-cart-plus"></i> Nueva venta
+                </a>
+                {% endif %}
+                <a href="{% url 'despachos:crear' %}" class="btn btn-light quick-action">
+                    <i class="bi bi-truck"></i> Nuevo despacho
+                </a>
+                <a href="{% url 'produccion:buscar_codigo' %}" class="btn btn-light quick-action">
+                    <i class="bi bi-upc-scan"></i> Buscar paca
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- STOCK ACTUAL POR MODELO, COLOR, SEGUNDA Y CUBETAS ESPECIAL -->
-    <div class="box mb-4">
-        <h5>
-             Stock Actual por Modelo y Color
-        </h5>
+    <div class="row g-2 mb-3">
+        {% for item in resumen_modelos %}
+        <div class="col-6 col-md-4 col-xl">
+            <div class="kpi-card"
+                 data-model="{{ item.clave }}"
+                 data-value="{{ item.total }}"
+                 data-color="{{ item.color }}"
+                 style="--kpi-color: {{ item.color }};">
+                <div class="kpi-icon">
+                    <i class="bi {{ item.icono }}"></i>
+                </div>
+                <div class="kpi-body">
+                    <span class="kpi-label">{{ item.nombre }}</span>
+                    <span class="kpi-value" data-countup="{{ item.total }}">0</span>
+                    <span class="kpi-unit">pacas en stock</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-lg-5">
+            <div class="box h-100 chart-card">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="mb-0">Distribución de stock</h5>
+                        <small class="text-muted">Pacas disponibles</small>
+                    </div>
+                    <span class="badge rounded-pill total-badge">
+                        {{ total_general }} pacas
+                    </span>
+                </div>
+
+                <div class="chart-wrap">
+                    {% if total_general %}
+                        <canvas id="stockChart"></canvas>
+                        <div class="chart-center">
+                            <strong>{{ total_general }}</strong>
+                            <small>pacas</small>
+                        </div>
+                    {% else %}
+                        <div class="chart-empty" id="chartEmpty">
+                            <i class="bi bi-bar-chart-line"></i>
+                            <p class="mb-0">Aún no hay stock registrado.</p>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="chart-legend" id="chartLegend"></div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="box h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="mb-0">Despachos pendientes</h5>
+                        <small class="text-muted">Guías por entregar</small>
+                    </div>
+                    <span class="badge rounded-pill {% if despachos_pendientes %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                        {{ despachos_pendientes|length }}
+                    </span>
+                </div>
+
+                {% if despachos_pendientes %}
+                <div class="pending-list">
+                    {% for despacho in despachos_pendientes %}
+                    <a href="{% url 'despachos:ver' despacho.id %}" class="pending-item">
+                        <div class="pending-icon">
+                            <i class="bi bi-truck"></i>
+                        </div>
+                        <div class="pending-info">
+                            <strong>Guía {{ despacho.numero_guia }}</strong>
+                            <small>{{ despacho.cliente.nombre }}</small>
+                        </div>
+                        <i class="bi bi-chevron-right text-muted"></i>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-check2-circle"></i>
+                    <p class="mb-1 fw-semibold">Todo al día</p>
+                    <small>No existen despachos pendientes.</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="box mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+            <div>
+                <h5 class="mb-0">Stock actual </h5>
+                <small class="text-muted">Producido menos vendido</small>
+            </div>
+            <div class="input-group search-stock">
+                <span class="input-group-text bg-white">
+                    <i class="bi bi-search"></i>
+                </span>
+                <input id="filtroColor" type="search" class="form-control"
+                       placeholder="Filtrar por color..." aria-label="Filtrar por color">
+            </div>
+        </div>
+
         <div class="table-responsive">
-            <table class="table table-hover align-middle">
+            <table class="table table-stock align-middle">
                 <thead>
                     <tr>
                         <th>Color</th>
@@ -77,51 +153,24 @@ Inicio
                         <th>Mediana</th>
                         <th>Gruesa</th>
                         <th>Extra Gruesa</th>
+                        <th>Total</th>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td> Amarillo</td>
-                        <td>{{ amarillo_inicial|default:"0" }}</td>
-                        <td>{{ amarillo_mediana|default:"0" }}</td>
-                        <td>{{ amarillo_gruesa|default:"0" }}</td>
-                        <td>{{ amarillo_extra|default:"0" }}</td>
+                <tbody id="tablaStock">
+                    {% for fila in filas_stock %}
+                    <tr data-color="{{ fila.nombre|lower }}">
+                        <td class="fw-semibold">
+                            <span class="color-dot" style="background: {{ fila.color_hex }};"></span>
+                            {{ fila.nombre }}
+                        </td>
+                        {% for valor in fila.valores %}
+                        <td>
+                            <span class="stock-pill {% if not valor %}is-empty{% endif %}">{{ valor }}</span>
+                        </td>
+                        {% endfor %}
+                        <td class="fw-bold text-dark">{{ fila.total }}</td>
                     </tr>
-                    <tr>
-                        <td> Verde</td>
-                        <td>{{ verde_inicial|default:"0" }}</td>
-                        <td>{{ verde_mediana|default:"0" }}</td>
-                        <td>{{ verde_gruesa|default:"0" }}</td>
-                        <td>{{ verde_extra|default:"0" }}</td>
-                    </tr>
-                    <tr>
-                        <td> Gris</td>
-                        <td>{{ gris_inicial|default:"0" }}</td>
-                        <td>{{ gris_mediana|default:"0" }}</td>
-                        <td>{{ gris_gruesa|default:"0" }}</td>
-                        <td>{{ gris_extra|default:"0" }}</td>
-                    </tr>
-                    <tr>
-                        <td> Natural</td>
-                        <td>{{ natural_inicial|default:"0" }}</td>
-                        <td>{{ natural_mediana|default:"0" }}</td>
-                        <td>{{ natural_gruesa|default:"0" }}</td>
-                        <td>{{ natural_extra|default:"0" }}</td>
-                    </tr>
-                    <tr>
-                        <td> Morado</td>
-                        <td>{{ morado_inicial|default:"0" }}</td>
-                        <td>{{ morado_mediana|default:"0" }}</td>
-                        <td>{{ morado_gruesa|default:"0" }}</td>
-                        <td>{{ morado_extra|default:"0" }}</td>
-                    </tr>
-                    <tr>
-                        <td> Palo de Rosa</td>
-                        <td>{{ palorosa_inicial|default:"0" }}</td>
-                        <td>{{ palorosa_mediana|default:"0" }}</td>
-                        <td>{{ palorosa_gruesa|default:"0" }}</td>
-                        <td>{{ palorosa_extra|default:"0" }}</td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr class="table-active fw-bold">
@@ -130,45 +179,118 @@ Inicio
                         <td>{{ total_mediana|default:"0" }}</td>
                         <td>{{ total_gruesa|default:"0" }}</td>
                         <td>{{ total_extragruesa|default:"0" }}</td>
+                        <td>{{ total_matriz|default:"0" }}</td>
                     </tr>
                 </tfoot>
             </table>
         </div>
     </div>
 
-    <!-- CRONOGRAMA -->
-   <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2 text-warning"></i> Cronograma de Pendientes (Despachos)</h5>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Módulo</th>
-                            <th>Descripción</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for despacho in despachos_pendientes %}
-                        <tr>
-                            <td><span class="badge bg-warning text-dark">Despachos</span></td>
-                            <td>Guía N° {{ despacho.numero_guia }} - Cliente: {{ despacho.cliente.nombre }}</td>
-                            <td><span class="badge bg-secondary">Pendiente</span></td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="3" class="text-center text-muted py-4">No existen pendientes.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
 </div>
+{% endblock %}
 
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<script>
+(function () {
+    const nf = new Intl.NumberFormat('es-EC');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    document.querySelectorAll('[data-countup]').forEach(function (el) {
+        const target = Number(el.dataset.countup) || 0;
+        if (reduceMotion || target === 0) {
+            el.textContent = nf.format(target);
+            return;
+        }
+        const duration = 900;
+        const start = performance.now();
+        function tick(now) {
+            const progress = Math.min((now - start) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = nf.format(Math.round(target * eased));
+            if (progress < 1) requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+    });
+
+    const cards = Array.from(document.querySelectorAll('.kpi-card'));
+    const total = cards.reduce(function (sum, card) {
+        return sum + (Number(card.dataset.value) || 0);
+    }, 0);
+
+    const legend = document.getElementById('chartLegend');
+    if (legend) {
+        legend.innerHTML = cards.map(function (card) {
+            const label = card.querySelector('.kpi-label').textContent.trim();
+            const value = Number(card.dataset.value) || 0;
+            return '<span class="chart-legend-item">' +
+                '<span class="chart-legend-dot" style="background:' + card.dataset.color + '"></span>' +
+                label + ': <strong>' + nf.format(value) + '</strong></span>';
+        }).join('');
+    }
+
+    const canvas = document.getElementById('stockChart');
+    if (!canvas || total === 0 || typeof Chart === 'undefined') {
+        return;
+    }
+
+    const chart = new Chart(canvas, {
+        type: 'doughnut',
+        data: {
+            labels: cards.map(function (card) {
+                return card.querySelector('.kpi-label').textContent.trim();
+            }),
+            datasets: [{
+                data: cards.map(function (card) {
+                    return Number(card.dataset.value) || 0;
+                }),
+                backgroundColor: cards.map(function (card) {
+                    return card.dataset.color;
+                }),
+                borderWidth: 0,
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '72%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function (ctx) {
+                            return ctx.label + ': ' + nf.format(ctx.parsed) + ' pacas';
+                        }
+                    }
+                }
+            },
+            animation: reduceMotion ? false : { animateRotate: true, duration: 800 }
+        }
+    });
+
+    cards.forEach(function (card, index) {
+        card.addEventListener('mouseenter', function () {
+            chart.setActiveElements([{ datasetIndex: 0, index: index }]);
+            chart.update();
+        });
+        card.addEventListener('mouseleave', function () {
+            chart.setActiveElements([]);
+            chart.update();
+        });
+    });
+
+    const filtro = document.getElementById('filtroColor');
+    const filas = Array.from(document.querySelectorAll('#tablaStock tr'));
+    if (filtro) {
+        filtro.addEventListener('input', function () {
+            const query = filtro.value.trim().toLowerCase();
+            filas.forEach(function (fila) {
+                const visible = !query || fila.dataset.color.includes(query);
+                fila.classList.toggle('d-none', !visible);
+            });
+        });
+    }
+})();
+</script>
 {% endblock %}

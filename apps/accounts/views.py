@@ -1,82 +1,102 @@
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.models import User
-from django.contrib.auth.hashers import make_password
 from django.contrib.auth.decorators import user_passes_test
+from django.contrib.auth.models import User
+from django.db import transaction
+from django.db.models.deletion import ProtectedError
+from django.shortcuts import get_object_or_404, redirect, render
+
 from apps.produccion.models import Operador
+
+from .models import PerfilUsuario
+
+
+def _solo_superusuario(view):
+    return user_passes_test(lambda u: u.is_superuser)(view)
+
 
 # ==========================================================
 # REGISTRO Y LISTADO PRINCIPAL
 # ==========================================================
 
-# Decorador para restringir que solo los superusuarios (administradores) entren a esta vista
-@user_passes_test(lambda u: u.is_superuser)
-def registrar_usuario(request):
-    if request.method == 'POST':
-        rol = request.POST.get('rol')
 
-        if rol == 'operador':
-            nombre = request.POST.get('first_name')
-            apellido = request.POST.get('last_name')
-            cedula = request.POST.get('cedula')
+@_solo_superusuario
+def registrar_usuario(request):
+    if request.method == "POST":
+        rol = request.POST.get("rol")
+
+        if rol == "operador":
+            nombre = request.POST.get("first_name", "").strip()
+            apellido = request.POST.get("last_name", "").strip()
+            cedula = request.POST.get("cedula", "").strip()
             nombre_completo = f"{nombre} {apellido}".strip()
+
+            if not nombre_completo or not cedula:
+                messages.error(request, "El nombre y la cédula del operador son obligatorios.")
+                return redirect("registrar_usuario")
 
             if Operador.objects.filter(cedula=cedula).exists():
                 messages.error(request, "Ya existe un operador registrado con esa cédula.")
-                return redirect('registrar_usuario')
+                return redirect("registrar_usuario")
 
             Operador.objects.create(
                 nombre_completo=nombre_completo,
                 cedula=cedula,
-                activo=True
+                activo=True,
             )
-            messages.success(request, f"Operador '{nombre_completo}' registrado con éxito para producción.")
-            
-            # Redirección directa sin namespace 'accounts:'
-            return redirect('lista_usuarios')
+            messages.success(
+                request,
+                f"Operador '{nombre_completo}' registrado con éxito para producción.",
+            )
+            return redirect("lista_usuarios")
 
-        else:
-            # Flujo para cuentas con acceso de login (Admin / Normal)
-            username = request.POST.get('username')
-            email = request.POST.get('email')
-            password = request.POST.get('password')
-            first_name = request.POST.get('first_name')
-            last_name = request.POST.get('last_name')
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "")
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
 
-            if User.objects.filter(username=username).exists():
-                messages.error(request, "El nombre de usuario ya existe.")
-                return redirect('registrar_usuario')
+        if not username or not password:
+            messages.error(request, "El usuario y la contraseña son obligatorios.")
+            return redirect("registrar_usuario")
 
-            User.objects.create(
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "El nombre de usuario ya existe.")
+            return redirect("registrar_usuario")
+
+        es_superusuario = rol == "superusuario"
+        with transaction.atomic():
+            usuario = User.objects.create_user(
                 username=username,
+                email=email,
+                password=password,
                 first_name=first_name,
                 last_name=last_name,
-                email=email,
-                password=make_password(password),
-                is_superuser=(rol == 'superusuario'),
-                is_staff=(rol == 'superusuario') # Permiso de staff si es superusuario
+                is_superuser=es_superusuario,
+                is_staff=es_superusuario,
             )
-            messages.success(request, f"Usuario de acceso '{username}' registrado con éxito.")
-            
-            # Redirección directa sin namespace 'accounts:'
-            return redirect('lista_usuarios')
+            PerfilUsuario.obtener_o_crear_para(usuario)
 
-    return render(request, 'accounts/registrar_usuario.html')
+        messages.success(
+            request,
+            f"Usuario de acceso '{username}' registrado con éxito.",
+        )
+        return redirect("lista_usuarios")
+
+    return render(request, "accounts/registrar_usuario.html")
 
 
-# Vista de la lista de usuarios
-@user_passes_test(lambda u: u.is_superuser)
+@_solo_superusuario
 def lista_usuarios(request):
-    usuarios_sistema = User.objects.all().order_by('-date_joined')
-    operadores_produccion = Operador.objects.all().order_by('nombre_completo')
-    
+    usuarios_sistema = User.objects.all().order_by("-date_joined")
+    operadores_produccion = Operador.objects.all().order_by("nombre_completo")
+
     return render(
-        request, 
-        'accounts/lista_usuarios.html', 
+        request,
+        "accounts/lista_usuarios.html",
         {
-            'usuarios_sistema': usuarios_sistema,
-            'operadores_produccion': operadores_produccion
-        }
+            "usuarios_sistema": usuarios_sistema,
+            "operadores_produccion": operadores_produccion,
+        },
     )
 
 
@@ -84,102 +104,139 @@ def lista_usuarios(request):
 # ACCIONES PARA OPERADORES DE PRODUCCIÓN
 # ==========================================================
 
-@user_passes_test(lambda u: u.is_superuser)
+
+@_solo_superusuario
 def editar_operador(request, pk):
     operador = get_object_or_404(Operador, pk=pk)
-    
-    if request.method == 'POST':
-        nombre = request.POST.get('first_name')
-        apellido = request.POST.get('last_name')
-        cedula = request.POST.get('cedula')
-        activo = request.POST.get('activo') == 'on' # Captura si el checkbox está marcado
+
+    if request.method == "POST":
+        nombre = request.POST.get("first_name", "").strip()
+        apellido = request.POST.get("last_name", "").strip()
+        cedula = request.POST.get("cedula", "").strip()
+        activo = request.POST.get("activo") == "on"
 
         nombre_completo = f"{nombre} {apellido}".strip()
+        if not nombre_completo or not cedula:
+            messages.error(request, "El nombre y la cédula del operador son obligatorios.")
+            return redirect("editar_operador", pk=pk)
 
-        # Evitar duplicados de cédula con otros operadores existentes
         if Operador.objects.filter(cedula=cedula).exclude(pk=pk).exists():
             messages.error(request, "Ya existe otro operador registrado con esa cédula.")
-            return redirect('editar_operador', pk=pk)
+            return redirect("editar_operador", pk=pk)
 
         operador.nombre_completo = nombre_completo
         operador.cedula = cedula
         operador.activo = activo
-        operador.save()
+        operador.save(update_fields=["nombre_completo", "cedula", "activo"])
 
-        messages.success(request, f"Operador '{nombre_completo}' actualizado correctamente.")
-        return redirect('lista_usuarios')
+        messages.success(
+            request, f"Operador '{nombre_completo}' actualizado correctamente."
+        )
+        return redirect("lista_usuarios")
 
-    # Separamos el nombre completo para rellenar los inputs "Nombres" y "Apellidos"
-    partes = operador.nombre_completo.split(' ', 1)
-    nombre = partes[0] if len(partes) > 0 else ""
-    apellido = partes[1] if len(partes) > 1 else ""
+    nombre, _, apellido = operador.nombre_completo.partition(" ")
 
-    return render(request, 'accounts/editar_operador.html', {
-        'operador': operador,
-        'nombre': nombre,
-        'apellido': apellido
-    })
+    return render(
+        request,
+        "accounts/editar_operador.html",
+        {
+            "operador": operador,
+            "nombre": nombre,
+            "apellido": apellido,
+        },
+    )
 
 
-@user_passes_test(lambda u: u.is_superuser)
+@_solo_superusuario
 def eliminar_operador(request, pk):
     operador = get_object_or_404(Operador, pk=pk)
     nombre_completo = operador.nombre_completo
-    operador.delete()
-    messages.success(request, f"Operador '{nombre_completo}' eliminado con éxito.")
-    return redirect('lista_usuarios')
+
+    try:
+        operador.delete()
+    except ProtectedError:
+        messages.error(
+            request,
+            f"No se puede eliminar a '{nombre_completo}' porque tiene producción registrada.",
+        )
+    else:
+        messages.success(
+            request, f"Operador '{nombre_completo}' eliminado con éxito."
+        )
+    return redirect("lista_usuarios")
 
 
 # ==========================================================
 # ACCIONES PARA USUARIOS DEL SISTEMA
 # ==========================================================
 
-@user_passes_test(lambda u: u.is_superuser)
+
+@_solo_superusuario
 def editar_usuario(request, pk):
     usuario_edit = get_object_or_404(User, pk=pk)
-    
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        rol = request.POST.get('rol')
-        password = request.POST.get('password') # Contraseña es opcional al editar
-        activo = request.POST.get('activo') == 'on'
 
-        # Evitar conflicto de usernames con otros
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip()
+        first_name = request.POST.get("first_name", "").strip()
+        last_name = request.POST.get("last_name", "").strip()
+        rol = request.POST.get("rol")
+        password = request.POST.get("password", "")
+        activo = request.POST.get("activo") == "on"
+
+        if not username:
+            messages.error(request, "El nombre de usuario es obligatorio.")
+            return redirect("editar_usuario", pk=pk)
+
         if User.objects.filter(username=username).exclude(pk=pk).exists():
-            messages.error(request, "El nombre de usuario ya está registrado por otra cuenta.")
-            return redirect('editar_usuario', pk=pk)
+            messages.error(
+                request,
+                "El nombre de usuario ya está registrado por otra cuenta.",
+            )
+            return redirect("editar_usuario", pk=pk)
 
+        es_superusuario = rol == "superusuario"
         usuario_edit.username = username
         usuario_edit.email = email
         usuario_edit.first_name = first_name
         usuario_edit.last_name = last_name
-        usuario_edit.is_superuser = (rol == 'superusuario')
-        usuario_edit.is_staff = (rol == 'superusuario')
+        usuario_edit.is_superuser = es_superusuario
+        usuario_edit.is_staff = es_superusuario
         usuario_edit.is_active = activo
 
-        if password: # Solo actualiza la contraseña si el administrador digitó una nueva
-            usuario_edit.password = make_password(password)
+        if password:
+            usuario_edit.set_password(password)
 
         usuario_edit.save()
-        messages.success(request, f"Cuenta de usuario '{username}' actualizada correctamente.")
-        return redirect('lista_usuarios')
+        PerfilUsuario.obtener_o_crear_para(usuario_edit)
 
-    return render(request, 'accounts/editar_usuario.html', {'usuario_edit': usuario_edit})
+        messages.success(
+            request,
+            f"Cuenta de usuario '{username}' actualizada correctamente.",
+        )
+        return redirect("lista_usuarios")
+
+    return render(
+        request,
+        "accounts/editar_usuario.html",
+        {"usuario_edit": usuario_edit},
+    )
 
 
-@user_passes_test(lambda u: u.is_superuser)
+@_solo_superusuario
 def eliminar_usuario(request, pk):
     usuario = get_object_or_404(User, pk=pk)
-    
-    # Doble validación de seguridad para que el administrador no se borre a sí mismo
+
     if usuario == request.user:
-        messages.error(request, "¡Acción denegada! No puedes eliminar tu propia cuenta en sesión.")
-        return redirect('lista_usuarios')
+        messages.error(
+            request,
+            "¡Acción denegada! No puedes eliminar tu propia cuenta en sesión.",
+        )
+        return redirect("lista_usuarios")
 
     username = usuario.username
     usuario.delete()
-    messages.success(request, f"Usuario de acceso '{username}' eliminado correctamente.")
-    return redirect('lista_usuarios')
+    messages.success(
+        request, f"Usuario de acceso '{username}' eliminado correctamente."
+    )
+    return redirect("lista_usuarios")

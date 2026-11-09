@@ -8,15 +8,18 @@ Detalle de Producción #{{ produccion.id }}
 <div class="container-fluid">
 
     <!-- Encabezado de Navegación -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
         <div>
             <a href="{% url 'produccion:lista' %}" class="btn btn-sm btn-outline-secondary mb-2">
-                ⬅ Volver al Historial
+                <i class="bi bi-arrow-left me-1"></i>Volver al Historial
             </a>
             <h2 class="fw-bold mb-0">Detalle de Producción #{{ produccion.id }}</h2>
         </div>
-        <div class="text-end">
-            <span class="badge bg-success fs-6 px-3 py-2 shadow-sm">
+        <div class="text-end d-flex flex-wrap gap-2 justify-content-end">
+            <a href="{% url 'produccion:etiquetas' produccion.id %}" class="btn btn-success shadow-sm">
+                <i class="bi bi-printer me-1"></i> Imprimir etiquetas
+            </a>
+            <span class="badge bg-success fs-6 px-3 py-2 shadow-sm align-self-center">
                 Fecha: {{ produccion.fecha|date:"d/m/Y" }}
             </span>
         </div>
@@ -69,7 +72,7 @@ Detalle de Producción #{{ produccion.id }}
                     </h6>
                     <p class="text-dark mb-0 bg-light p-3 rounded" style="min-height: 80px;">
                         {% if produccion.observacion %}
-                            {{ produccion.observacion }}
+                            {{ produccion.observacion|linebreaksbr }}
                         {% else %}
                             <span class="text-muted italic">Sin comentarios u observaciones agregadas en este registro.</span>
                         {% endif %}
@@ -127,7 +130,7 @@ Detalle de Producción #{{ produccion.id }}
                     <ul class="list-group list-group-flush">
                         {% for detalle in produccion.detalles.all %}
                             <li class="list-group-item bg-light fw-bold py-2 px-3 text-secondary" style="font-size: 0.85rem;">
-                                📌 {{ detalle.producto.nombre }} ({{ detalle.color.nombre }})
+                                <i class="bi bi-tag-fill me-1"></i>{{ detalle.producto.nombre }} ({{ detalle.color.nombre }})
                             </li>
                             {% for paca in detalle.pacas.all %}
                                 <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-4">

@@ -27,7 +27,6 @@ class VentaForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        super(VentaForm, self).__init__(*args, **kwargs)
-        # Opcional: Si quieres que todos los campos sean requeridos
-        for field in self.fields.values():
-            field.required = True
+        super().__init__(*args, **kwargs)
+        # Solo los campos obligatorios del modelo permanecen requeridos.
+        self.fields["observacion"].required = False

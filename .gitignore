@@ -1,0 +1,16 @@
+# Entorno de Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Variables de entorno
+.env
+
+# Bases de datos locales
+*.sqlite3
+
+# Archivos generados
+/staticfiles/
+/media/
+*.log

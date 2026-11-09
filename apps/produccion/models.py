@@ -1,7 +1,9 @@
 from django.db import models
+from django.utils import timezone
+
 from apps.catalogos.models import Producto, Color
 
-# Subimos la declaración de Operador arriba para poder referenciarlo en Produccion
+
 class Operador(models.Model):
     nombre_completo = models.CharField(max_length=150, verbose_name="Nombre Completo")
     cedula = models.CharField(max_length=10, unique=True, verbose_name="Cédula")
@@ -14,6 +16,35 @@ class Operador(models.Model):
         elif len(partes) == 1:
             return f"{partes[0][:2]}".upper()
         return "OP"
+
+    def obtener_codigo_acceso(self):
+        """Código que el operador usa para entrar a la terminal táctil."""
+        ultimos_cedula = self.cedula[-4:] if len(self.cedula) >= 4 else self.cedula
+        return f"{self.obtener_iniciales()}{ultimos_cedula}".upper()
+
+    @classmethod
+    def buscar_por_credencial(cls, ingreso):
+        """Busca un operador activo por cédula o por código de acceso."""
+        ingreso = (ingreso or "").strip()
+        if not ingreso:
+            return None
+
+        operador = cls.objects.filter(cedula__iexact=ingreso, activo=True).first()
+        if operador:
+            return operador
+
+        ingreso = ingreso.upper()
+        for op in cls.objects.filter(activo=True):
+            codigos = {op.cedula.upper(), op.obtener_codigo_acceso()}
+            # Compatibilidad con el formato antiguo para nombres de una palabra.
+            partes = op.nombre_completo.strip().split()
+            if len(partes) == 1 and partes[0]:
+                ultimos_cedula = op.cedula[-4:] if len(op.cedula) >= 4 else op.cedula
+                codigos.add(f"{partes[0][0]}X{ultimos_cedula}".upper())
+
+            if ingreso in codigos:
+                return op
+        return None
 
     def __str__(self):
         return f"{self.nombre_completo} ({self.obtener_iniciales()})"
@@ -46,7 +77,6 @@ class Produccion(models.Model):
         related_name="producciones"
     )
 
-    # CORREGIDO: Ahora apunta directamente al modelo Operador que está arriba
     operador = models.ForeignKey(
         Operador,
         on_delete=models.PROTECT,
@@ -156,3 +186,23 @@ class Paca(models.Model):
 
     def __str__(self):
         return self.codigo_unico
+
+
+class CronogramaDiario(models.Model):
+    fecha = models.DateField(default=timezone.localdate)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["-fecha", "producto__nombre"]
+        verbose_name = "Cronograma Diario"
+        verbose_name_plural = "Cronogramas Diarios"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["fecha", "producto"],
+                name="cronograma_fecha_producto_unico",
+            )
+        ]
+
+    def __str__(self):
+        return f"Cronograma {self.fecha} - {self.producto}"

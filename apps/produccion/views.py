@@ -1,168 +1,162 @@
-from datetime import datetime
-from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
 
-from .forms import ProduccionForm
-from .models import Produccion, DetalleProduccion, Paca, Operador, Turno
-from apps.catalogos.models import Producto, Color
+from apps.catalogos.models import Producto
 
+from .labels import preparar_etiquetas
+from .models import CronogramaDiario, Paca, Produccion
+
+
+@login_required(login_url="/login/")
 def lista_produccion(request):
-    producciones = Produccion.objects.all()
+    producciones = Produccion.objects.prefetch_related(
+        "detalles__producto", "detalles__color"
+    ).all()
+    return render(request, "produccion/lista.html", {"producciones": producciones})
+
+
+@login_required(login_url="/login/")
+def gestionar_cronograma(request):
+    """Vista para que el administrador seleccione los modelos activos del día."""
+    hoy = timezone.localdate()
+    productos = Producto.objects.all()
+
+    if request.method == "POST":
+        productos_ids = request.POST.getlist("productos_activos[]")
+        # Solo se aceptan IDs de productos existentes.
+        productos_ids = list(
+            Producto.objects.filter(id__in=productos_ids).values_list("id", flat=True)
+        )
+
+        with transaction.atomic():
+            # Se reemplaza el cronograma del día por la nueva selección.
+            CronogramaDiario.objects.filter(fecha=hoy).delete()
+            CronogramaDiario.objects.bulk_create(
+                [
+                    CronogramaDiario(fecha=hoy, producto_id=prod_id, activo=True)
+                    for prod_id in productos_ids
+                ],
+                ignore_conflicts=True,
+            )
+
+        messages.success(request, "¡Cronograma de producción actualizado con éxito!")
+        return redirect("produccion:registrar")
+
+    productos_seleccionados_ids = list(
+        CronogramaDiario.objects.filter(fecha=hoy, activo=True).values_list(
+            "producto_id", flat=True
+        )
+    )
+
     return render(
         request,
-        "produccion/lista.html",
+        "produccion/cronograma.html",
         {
-            "producciones": producciones
-        }
+            "productos": productos,
+            "productos_seleccionados_ids": productos_seleccionados_ids,
+            "fecha_hoy": hoy,
+        },
     )
 
-def registrar_produccion(request):
-    if request.method == "POST":
-        post_data = request.POST.copy()
-        operador_id = post_data.get('operador')
-        turno_id = post_data.get('turno')
-        
-        fecha_actual_str = datetime.today().strftime('%Y-%m-%d')
-        post_data['fecha'] = fecha_actual_str
-        
-        form = ProduccionForm(post_data)
-        
-        if 'operador' in form.errors: del form.errors['operador']
-        if 'turno' in form.errors: del form.errors['turno']
-        
-        if form.is_valid() and operador_id and turno_id:
-            try:
-                with transaction.atomic():
-                    produccion = form.save(commit=False)
-                    produccion.fecha = datetime.today().date()
-                    produccion.operador_id = int(operador_id)
-                    produccion.turno_id = int(turno_id)
-                    produccion.save()
 
-                    productos_ids = request.POST.getlist('producto[]')
-                    colores_ids = request.POST.getlist('color[]')
-                    cantidades = request.POST.getlist('cantidad_pacas[]')
-
-                    for i in range(len(productos_ids)):
-                        prod_id = productos_ids[i]
-                        col_id = colores_ids[i]
-                        cant = int(cantidades[i])
-
-                        if prod_id and col_id and cant > 0:
-                            producto = Producto.objects.get(id=prod_id)
-                            color = Color.objects.get(id=col_id)
-
-                            detalle = DetalleProduccion.objects.create(
-                                produccion=produccion,
-                                producto=producto,
-                                color=color,
-                                cantidad_pacas=cant
-                            )
-
-                            # --- CONFIGURACIÓN DEL CÓDIGO ÚNICO ---
-                            iniciales_op = produccion.operador.obtener_iniciales()
-                            fecha_formateada = produccion.fecha.strftime('%d%m%y')
-                            codigo_prod_col = f"{producto.codigo.strip().upper()}{color.codigo.strip().upper()}"
-                            
-                            # 1. Buscamos cómo quedó el último lote histórico para este Producto + Color
-                            ultima_paca = Paca.objects.filter(
-                                detalle__producto=producto,
-                                detalle__color=color
-                            ).order_by('-id').first()
-
-                            # Verificamos si hay un lote sin completar (menos de 50 pacas)
-                            if ultima_paca and ultima_paca.numero_paca < 50:
-                                pacas_para_completar = 50 - ultima_paca.numero_paca
-                                lote_heredado = ultima_paca.lote
-                                paca_anterior_en_lote = ultima_paca.numero_paca
-                            else:
-                                pacas_para_completar = 0
-                                lote_heredado = 0
-                                paca_anterior_en_lote = 0
-
-                            # 2. Generamos EXACTAMENTE 'cant' pacas (ej. 42)
-                            for paca_contador in range(1, cant + 1):
-                                
-                                # CASO A: Completar el lote a medias del turno previo
-                                if pacas_para_completar > 0 and paca_contador <= pacas_para_completar:
-                                    num_lote = lote_heredado
-                                    paca_en_lote = paca_anterior_en_lote + paca_contador
-                                
-                                # CASO B: Arrancar los lotes PROPIOS de este turno (Lote 1, Lote 2, etc.)
-                                else:
-                                    pacas_propias = paca_contador - pacas_para_completar
-                                    num_lote = ((pacas_propias - 1) // 50) + 1
-                                    paca_en_lote = ((pacas_propias - 1) % 50) + 1
-
-                                lote_formateado = f"L{num_lote:02d}"
-                                paca_formateada = f"{paca_en_lote:03d}"
-
-                                nuevo_codigo_unico = f"{iniciales_op}{fecha_formateada}{codigo_prod_col}{paca_formateada}{lote_formateado}"
-
-                                Paca.objects.create(
-                                    detalle=detalle,
-                                    numero_paca=paca_en_lote,
-                                    lote=num_lote,
-                                    codigo_unico=nuevo_codigo_unico
-                                )
-
-                    messages.success(request, "¡Producción y pacas guardadas correctamente!")
-                    return redirect('produccion:lista')
-                
-            except Exception as e:
-                messages.error(request, f"Ocurrió un error al guardar la producción: {str(e)}")
-        else:
-            messages.error(request, "Por favor, verifique que todos los campos estén correctos.")
-    else:
-        form = ProduccionForm()
-
-    productos = Producto.objects.all()
-    colores = Color.objects.all()
-    operadores = Operador.objects.filter(activo=True)
-    turnos = Turno.objects.filter(activo=True)
-
-    return render(
-        request, "produccion/registrar.html",
-        {
-            "form": form, "productos": productos, "colores": colores,
-            "operadores": operadores, "turnos": turnos,
-            "fecha_hoy": datetime.today().strftime('%Y-%m-%d')
-        }
-    )
-    
+@login_required(login_url="/login/")
 def detalle_produccion(request, id):
-    produccion = Produccion.objects.get(id=id)
+    produccion = get_object_or_404(
+        Produccion.objects.prefetch_related(
+            "detalles__producto", "detalles__color", "detalles__pacas"
+        ),
+        id=id,
+    )
     return render(
         request,
         "produccion/detalle.html",
-        {
-            "produccion": produccion
-        }
+        {"produccion": produccion},
     )
-    
+
+
+@login_required(login_url="/login/")
 def buscar_codigo(request):
-    codigo = request.GET.get('codigo', '').strip()
+    codigo = request.GET.get("codigo", "").strip()
     paca = None
     error_mensaje = None
 
     if codigo:
         try:
             paca = Paca.objects.select_related(
-                'detalle__produccion', 
-                'detalle__producto', 
-                'detalle__color',
-                'detalle__produccion__operador'
+                "detalle__produccion",
+                "detalle__producto",
+                "detalle__color",
+                "detalle__produccion__operador",
             ).get(codigo_unico__iexact=codigo)
         except Paca.DoesNotExist:
-            error_mensaje = f"No se encontró ninguna paca registrada con el código: '{codigo}'"
+            error_mensaje = (
+                f"No se encontró ninguna paca registrada con el código: '{codigo}'"
+            )
+
+    if paca:
+        preparar_etiquetas([paca], base_url=request.build_absolute_uri("/"))
 
     return render(
         request,
-        "produccion/buscar_codigo.html", 
+        "produccion/buscar_codigo.html",
         {
             "paca": paca,
             "codigo": codigo,
             "error_mensaje": error_mensaje,
-        }
+        },
+    )
+
+
+def ficha_paca(request, codigo):
+    """Ficha pública de trazabilidad a la que apunta el QR de la etiqueta."""
+    paca = get_object_or_404(
+        Paca.objects.select_related(
+            "detalle__produccion",
+            "detalle__producto",
+            "detalle__color",
+            "detalle__produccion__operador",
+            "detalle__produccion__turno",
+        ),
+        codigo_unico__iexact=codigo,
+    )
+    preparar_etiquetas([paca], base_url=request.build_absolute_uri("/"))
+    return render(request, "produccion/ficha_paca.html", {"paca": paca})
+
+
+@login_required(login_url="/login/")
+def imprimir_etiquetas(request, id):
+    """Vista de impresión de etiquetas para una producción completa."""
+    produccion = get_object_or_404(
+        Produccion.objects.select_related("operador", "turno"), id=id
+    )
+    pacas = list(
+        Paca.objects.filter(detalle__produccion=produccion)
+        .select_related(
+            "detalle__producto",
+            "detalle__color",
+            "detalle__produccion__operador",
+        )
+        .order_by("detalle__producto__nombre", "detalle__color__nombre", "numero_paca")
+    )
+    preparar_etiquetas(pacas, base_url=request.build_absolute_uri("/"))
+
+    return render(
+        request,
+        "produccion/etiquetas.html",
+        {
+            "pacas": pacas,
+            "titulo": f"Producción #{produccion.id}",
+            "subtitulo": (
+                f"{produccion.operador.nombre_completo} · "
+                f"{produccion.fecha:%d/%m/%Y} · {produccion.turno.nombre}"
+            ),
+            "volver_url": reverse(
+                "produccion:detalle_produccion", args=[produccion.id]
+            ),
+            "volver_texto": "Volver al detalle",
+        },
     )

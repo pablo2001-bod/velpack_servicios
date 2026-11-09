@@ -15,9 +15,16 @@ class Proveedor(models.Model):
         blank=True
     )
 
+    correo = models.EmailField(
+        blank=True
+    )
+
     direccion = models.TextField()
 
     activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["nombre"]
 
     def __str__(self):
         return self.nombre

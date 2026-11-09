@@ -1,0 +1,222 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ficha de paca {{ paca.codigo_unico }} | Velpack S.A.</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 22px 14px;
+            background: #eef2f6;
+            color: #0f172a;
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+        .ficha {
+            max-width: 640px;
+            margin: 0 auto;
+        }
+        .ficha-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 14px;
+            padding: 18px 22px;
+            border-radius: 16px;
+            color: #fff;
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #43A047 100%);
+            box-shadow: 0 14px 30px rgba(27, 94, 32, .22);
+        }
+        .ficha-header strong {
+            font-size: 1.1rem;
+            letter-spacing: .12em;
+        }
+        .ficha-header span {
+            padding: 5px 11px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .16);
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+        .card {
+            padding: 24px;
+            border-radius: 18px;
+            background: #fff;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, .08);
+        }
+        .code-title {
+            margin: 0;
+            color: #64748b;
+            font-size: .72rem;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .code {
+            margin: 6px 0 18px;
+            padding: 13px 12px;
+            border: 1px solid #86efac;
+            border-radius: 12px;
+            background: #f0fdf4;
+            color: #14532d;
+            font-family: "Courier New", monospace;
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-align: center;
+            word-break: break-all;
+        }
+        .codes {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .barcode {
+            flex: 1;
+            max-width: 340px;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fff;
+        }
+        .barcode img { display: block; width: 100%; max-height: 86px; }
+        .qr {
+            flex: 0 0 auto;
+            width: 108px;
+            height: 108px;
+            padding: 5px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #fff;
+        }
+        .qr img { display: block; width: 100%; height: 100%; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+        .dato {
+            padding: 12px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+        .dato small {
+            display: block;
+            margin-bottom: 3px;
+            color: #64748b;
+            font-size: .68rem;
+            font-weight: 800;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
+        .dato strong {
+            display: block;
+            color: #0f172a;
+            font-size: .98rem;
+            line-height: 1.25;
+        }
+        .dato.full { grid-column: 1 / -1; }
+        .obs {
+            margin-top: 14px;
+            padding: 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            color: #334155;
+            background: #fff;
+            font-size: .9rem;
+            line-height: 1.5;
+        }
+        .obs strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #64748b;
+            font-size: .68rem;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
+        .footer {
+            margin: 14px 0 0;
+            color: #94a3b8;
+            font-size: .72rem;
+            text-align: center;
+        }
+        @media (max-width: 520px) {
+            body { padding: 12px 10px; }
+            .card { padding: 18px 14px; }
+            .codes { flex-direction: column; }
+            .barcode { width: 100%; max-width: none; }
+            .grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <main class="ficha">
+        <header class="ficha-header">
+            <strong>VELPACK S.A.</strong>
+            <span>Ficha de trazabilidad</span>
+        </header>
+
+        <section class="card">
+            <p class="code-title">Código único de la paca</p>
+            <div class="code">{{ paca.codigo_unico }}</div>
+
+            <div class="codes">
+                <div class="barcode">
+                    <img src="{{ paca.barcode_data_uri }}" alt="Código de barras {{ paca.codigo_unico }}">
+                </div>
+                <div class="qr">
+                    <img src="{{ paca.qr_data_uri }}" alt="QR {{ paca.codigo_unico }}">
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="dato">
+                    <small>Modelo / Producto</small>
+                    <strong>{{ paca.detalle.producto.nombre }}</strong>
+                </div>
+                <div class="dato">
+                    <small>Color</small>
+                    <strong>{{ paca.detalle.color.nombre }}</strong>
+                </div>
+                <div class="dato">
+                    <small>Número de paca</small>
+                    <strong>#{{ paca.numero_paca }}</strong>
+                </div>
+                <div class="dato">
+                    <small>Lote</small>
+                    <strong>L{{ paca.lote|stringformat:"02d" }}</strong>
+                </div>
+                <div class="dato full">
+                    <small>Fecha y hora de elaboración</small>
+                    <strong>{{ paca.fecha_creacion|date:"d \d\e F \d\e Y · H:i" }}</strong>
+                </div>
+                <div class="dato">
+                    <small>Operador</small>
+                    <strong>{{ paca.detalle.produccion.operador.nombre_completo }}</strong>
+                </div>
+                <div class="dato">
+                    <small>Turno</small>
+                    <strong>{{ paca.detalle.produccion.turno.nombre }}</strong>
+                </div>
+            </div>
+
+            <div class="obs">
+                <strong>Observaciones de producción</strong>
+                {{ paca.detalle.produccion.observacion|default:"Sin novedades u observaciones registradas."|linebreaksbr }}
+            </div>
+        </section>
+
+        <p class="footer">Registro verificado por Velpack S.A. · {{ paca.fecha_creacion|date:"d/m/Y H:i" }}</p>
+    </main>
+</body>
+</html>

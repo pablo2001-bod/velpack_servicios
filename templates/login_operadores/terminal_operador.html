@@ -3,172 +3,719 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal Táctil - Velpack</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <title>Terminal de Producción | Velpack</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f6f9; }
-        .touch-btn {
-            height: 130px;
-            font-size: 1.4rem;
-            font-weight: bold;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.1s;
+        :root {
+            --brand: #1B5E20;
+            --brand-soft: #2E7D32;
+            --ink: #0f172a;
+            --muted: #64748b;
         }
-        .touch-btn:active { transform: scale(0.97); }
+        * { box-sizing: border-box; }
+        html, body { min-height: 100%; }
+        body {
+            margin: 0;
+            background: #eef2f6;
+            color: var(--ink);
+            font-family: "Segoe UI", Arial, sans-serif;
+        }
+        .terminal-shell {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .terminal-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 18px;
+            padding: 18px 22px;
+            border-radius: 18px;
+            color: #fff;
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #43A047 100%);
+            box-shadow: 0 16px 36px rgba(27, 94, 32, .22);
+        }
+        .brand-block { display: flex; align-items: center; gap: 12px; }
+        .brand-mark {
+            display: grid;
+            place-items: center;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, .16);
+            font-size: 1.4rem;
+            font-weight: 800;
+        }
+        .brand-block h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 800;
+            letter-spacing: .14em;
+        }
+        .brand-block p { margin: 2px 0 0; font-size: .75rem; color: rgba(255,255,255,.75); }
+        .operator-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-left: 18px;
+            border-left: 1px solid rgba(255,255,255,.22);
+        }
+        .operator-avatar {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.18);
+            font-weight: 800;
+        }
+        .operator-block strong { display: block; font-size: .95rem; }
+        .operator-block span { font-size: .75rem; color: rgba(255,255,255,.78); }
+        .clock-block { margin-left: auto; text-align: right; }
+        .clock-block span {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            line-height: 1;
+        }
+        .clock-block small { font-size: .72rem; color: rgba(255,255,255,.78); }
+        .header-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+        .btn-terminal {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            padding: 9px 14px;
+            border-radius: 11px;
+            border: 1px solid transparent;
+            font-size: .82rem;
+            font-weight: 700;
+            text-decoration: none;
+        }
+        .btn-terminal.btn-light { background: #fff; color: var(--brand); }
+        .btn-terminal.btn-outline-light { border-color: rgba(255,255,255,.5); color: #fff; }
+        .btn-terminal.btn-warn { background: #ffc107; color: #212529; }
+        .btn-terminal:hover { filter: brightness(.96); }
+        .alerts { margin-top: 16px; }
+        .alerts .alert { border: 0; border-radius: 12px; box-shadow: 0 6px 16px rgba(15,23,42,.06); }
+
+        .setup-panel {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 34px;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 16px 36px rgba(15,23,42,.08);
+            text-align: center;
+        }
+        .setup-panel h2 { font-weight: 800; color: var(--brand); }
+        .setup-panel > p { color: var(--muted); }
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 14px;
+            margin-top: 26px;
+        }
+        .color-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 20px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            background: #fff;
+            font-weight: 700;
+            color: var(--ink);
+            transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease;
+        }
+        .color-card:hover {
+            transform: translateY(-3px);
+            border-color: var(--swatch);
+            box-shadow: 0 12px 24px rgba(15,23,42,.1);
+        }
+        .swatch {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: var(--swatch);
+            box-shadow: inset 0 0 0 3px rgba(255,255,255,.55);
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 12px;
+            margin: 18px 0;
+        }
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            padding: 15px 17px;
+            border-radius: 15px;
+            background: #fff;
+            border: 1px solid rgba(15,23,42,.05);
+            box-shadow: 0 8px 20px rgba(15,23,42,.05);
+        }
+        .stat-card span {
+            color: var(--muted);
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+        }
+        .stat-card strong {
+            margin: 5px 0 2px;
+            font-size: 1.35rem;
+            font-weight: 800;
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+        .stat-card small { color: #94a3b8; font-size: .72rem; }
+        .mono { font-family: "Courier New", monospace; font-size: 1rem !important; }
+
+        .production-panel {
+            padding: 22px;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: 0 12px 30px rgba(15,23,42,.07);
+        }
+        .section-title {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+        .section-title h2 { margin: 0; font-size: 1.15rem; font-weight: 800; }
+        .color-pill {
+            padding: 6px 14px;
+            border-radius: 999px;
+            color: #fff;
+            font-size: .78rem;
+            font-weight: 800;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+        }
+        .model-card {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 8px;
+            min-height: 150px;
+            padding: 20px;
+            border: 0;
+            border-radius: 18px;
+            background: #f8fafc;
+            border-top: 5px solid var(--accent, var(--brand-soft));
+            color: var(--ink);
+            text-align: left;
+            box-shadow: 0 6px 16px rgba(15,23,42,.05);
+            transition: transform .12s ease, box-shadow .12s ease;
+        }
+        .model-card:hover { transform: translateY(-3px); box-shadow: 0 14px 26px rgba(15,23,42,.1); }
+        .model-card:active { transform: scale(.985); }
+        .model-card:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+        .model-icon {
+            display: grid;
+            place-items: center;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: #fff;
+            color: var(--accent, var(--brand-soft));
+            font-size: 1.4rem;
+            box-shadow: 0 4px 10px rgba(15,23,42,.06);
+        }
+        .model-name { font-size: 1.12rem; font-weight: 800; }
+        .model-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: auto;
+            color: var(--muted);
+            font-size: .8rem;
+            font-weight: 700;
+        }
+        .second-row { margin-top: 14px; }
+        .model-second {
+            --accent: #495057 !important;
+            background: #f1f3f5;
+        }
+        .empty {
+            grid-column: 1 / -1;
+            padding: 30px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .modal-content { border: 0; border-radius: 18px; overflow: hidden; }
+        .modal-header { border: 0; }
+        .qty-btn { height: 52px; font-weight: 800; border-radius: 10px; }
+        .numpad-btn {
+            height: 58px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            background: #f8f9fa;
+            font-size: 1.35rem;
+            font-weight: 800;
+        }
+        .numpad-btn:active { background: #e2e6ea; }
+        .qty-display {
+            height: 78px;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--brand);
+            background: #fff;
+        }
+        .summary-note {
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            color: var(--muted);
+            font-size: .82rem;
+        }
+        .summary-note strong { color: var(--ink); }
+        .btn-confirm {
+            padding: 12px 26px;
+            font-size: 1rem;
+            font-weight: 800;
+            border-radius: 12px;
+        }
+        @media (max-width: 767.98px) {
+            .terminal-shell { padding: 12px; }
+            .clock-block { margin-left: 0; text-align: left; }
+            .operator-block { padding-left: 0; border-left: 0; }
+            .header-actions { width: 100%; }
+            .header-actions .btn-terminal { flex: 1 1 auto; justify-content: center; }
+        }
     </style>
 </head>
 <body>
-    <div class="container-fluid py-4">
-        <!-- Cabecera -->
-        <div class="d-flex justify-content-between align-items-center bg-success text-white p-3 rounded shadow-sm mb-4">
+{% with col_nombre=color_actual.nombre|lower %}
+<div class="terminal-shell">
+
+    <header class="terminal-header">
+        <div class="brand-block">
+            <div class="brand-mark">V</div>
             <div>
-                <h4 class="mb-0"><i class="bi bi-cpu me-2"></i> Terminal Táctil de Producción</h4>
-                <small>Operador: <strong>{{ operador_nombre }}</strong> | 
-                    {% if not necesita_config %}
-                        Turno: <strong>{{ turno_actual.nombre }}</strong> | Color: <span class="badge bg-light text-success px-2">{{ color_actual.nombre }}</span>
-                    {% endif %}
-                </small>
-            </div>
-            <div class="d-flex gap-2">
-                {% if not necesita_config %}
-                    <button type="button" class="btn btn-warning fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#modalCambio">
-                        <i class="bi bi-arrow-repeat me-1"></i> Cambiar Turno / Color
-                    </button>
-                {% endif %}
-                <a href="{% url 'operadores:logout_operador' %}" class="btn btn-light text-success fw-bold">
-                    <i class="bi bi-box-arrow-right me-1"></i> Salir
-                </a>
+                <h1>VELPACK</h1>
             </div>
         </div>
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-success alert-dismissible fade show py-2" role="alert">
-                    <i class="bi bi-check-circle-fill me-1"></i> {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        {% if necesita_config %}
-            <!-- Panel de configuración inicial obligatoria al entrar -->
-            <div class="row justify-content-center">
-                <div class="col-md-6">
-                    <div class="card shadow border-0 p-4">
-                        <h4 class="fw-bold text-success mb-3"><i class="bi bi-sliders me-2"></i> Configuración Inicial de Turno</h4>
-                        <p class="text-muted small">Seleccione el turno y el color con el que va a iniciar la producción. Esto quedará fijo hasta que decida cambiarlo.</p>
-                        
-                        <form method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" name="accion" value="configurar">
-                            
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Turno de Trabajo:</label>
-                                <select name="turno_id" class="form-select form-select-lg" required>
-                                    <option value="" disabled selected>-- Seleccione el turno --</option>
-                                    {% for turno in turnos %}
-                                        <option value="{{ turno.id }}">{{ turno.nombre }} ({{ turno.hora_inicio|time:"H:i" }} - {{ turno.hora_fin|time:"H:i" }})</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Color de Producción:</label>
-                                <select name="color_id" class="form-select form-select-lg" required>
-                                    <option value="" disabled selected>-- Seleccione el color --</option>
-                                    {% for col in colores %}
-                                        <option value="{{ col.id }}">{{ col.nombre }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-
-                            <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">Guardar y Comenzar a Empacar</button>
-                        </form>
-                    </div>
-                </div>
+        <div class="operator-block">
+            <div class="operator-avatar">{{ operador_nombre|first|upper }}</div>
+            <div>
+                <strong>{{ operador_nombre }}</strong>
+                <span>
+                    {% if turno_actual %}
+                        Turno: {{ turno_actual.nombre }} ({{ turno_actual.hora_inicio|time:"H:i" }} - {{ turno_actual.hora_fin|time:"H:i" }})
+                    {% else %}
+                        Sin turno activo
+                    {% endif %}
+                </span>
             </div>
-        {% else %}
-            <!-- Pantalla de Producción Rápida: Solo Botones de Modelos -->
-            <h3 class="fw-bold text-dark mb-4 text-center"><i class="bi bi-hand-index-thumb me-2"></i> Toque el modelo producido (Registro Instantáneo):</h3>
-            
+        </div>
+
+        <div class="clock-block">
+            <span id="reloj">--:--:--</span>
+            <small>{{ fecha_hoy|date:"d/m/Y" }}</small>
+        </div>
+
+        <div class="header-actions">
+            {% if not necesita_config %}
+            <button type="button" class="btn-terminal btn-warn" data-bs-toggle="modal" data-bs-target="#modalCambio">
+                <i class="bi bi-palette"></i> Cambiar color
+            </button>
+            {% endif %}
+            {% if puede_cerrar_sesion %}
+            <a href="{% url 'operadores:logout_operador' %}" class="btn-terminal btn-outline-light">
+                <i class="bi bi-box-arrow-right"></i> Salir
+            </a>
+            {% else %}
+            <button type="button" class="btn-terminal btn-outline-light" disabled
+                    title="Disponible cuando termine el turno {{ turno_en_curso.nombre }} ({{ turno_en_curso.hora_fin|time:'H:i' }})">
+                <i class="bi bi-lock-fill"></i> Salir bloqueado
+            </button>
+            {% endif %}
+        </div>
+    </header>
+
+    {% if not turno_actual %}
+    <div class="alert alert-warning mt-3 d-flex align-items-center gap-2">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        No hay un turno activo configurado. Contacta al administrador antes de registrar producción.
+    </div>
+    {% endif %}
+
+    {% if messages %}
+    <div class="alerts">
+        {% for message in messages %}
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags == 'success' %}success{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+            <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle-fill{% else %}bi-check-circle-fill{% endif %} me-1"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if necesita_config %}
+    <section class="setup-panel">
+        <h2>Selecciona un color </h2>
+
+        <form method="POST" id="form-color-inicial">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="configurar_color">
+            <input type="hidden" name="color_id" id="color_id_input">
+            <div class="color-grid">
+                {% for col in colores %}
+                <button type="button" class="color-card btn-elegir-color" data-id="{{ col.id }}" style="--swatch: {{ col.hex_color }};">
+                    <span class="swatch"></span>
+                    <span>{{ col.nombre }}</span>
+                </button>
+                {% empty %}
+                <div class="empty">No hay colores activos configurados.</div>
+                {% endfor %}
+            </div>
+        </form>
+    </section>
+    {% else %}
+    <section class="stats-row">
+        <div class="stat-card">
+            <span>Pacas acumuladas</span>
+            <strong>{{ pacas_hoy }}</strong>
+        </div>
+        <div class="stat-card">
+            <span>Color actual</span>
+            <strong style="color: {{ color_actual.hex_color }};">{{ color_actual.nombre }}</strong>
+        </div>
+        <div class="stat-card">
+            <span>Último código</span>
+            <strong class="mono">{{ ultima_paca.codigo_unico|default:"—" }}</strong>
+            <small>
+                {% if ultima_paca %}
+                    Lote {{ ultima_paca.lote }} · Paca #{{ ultima_paca.numero_paca }}
+                {% else %}
+                    Aún no registras pacas
+                {% endif %}
+            </small>
+        </div>
+        <div class="stat-card">
+            <span>Jornada</span>
+            <strong>{{ fecha_hoy|date:"d/m/y" }}</strong>
+            <small>corte operativo 06:00</small>
+        </div>
+    </section>
+
+    <section class="production-panel">
+        <div class="section-title">
+            <h2>Toque el modelo a registrar</h2>
+            <span class="color-pill" style="background: {{ color_actual.hex_color }};">{{ color_actual.nombre }}</span>
+        </div>
+
+        <div class="models-grid">
+            {% for prod in productos %}
+                {% if "segunda" not in prod.nombre|lower %}
+                <button type="button"
+                        class="model-card btn-abrir-modal"
+                        data-id="{{ prod.id }}"
+                        data-nombre="{{ prod.nombre }}"
+                        style="--accent: {{ color_actual.hex_color }};"
+                        {% if not turno_actual %}disabled{% endif %}>
+                    <span class="model-icon"><i class="bi bi-box-seam"></i></span>
+                    <span class="model-name">{{ prod.nombre }}</span>
+                    <span class="model-action">Registrar <i class="bi bi-arrow-right"></i></span>
+                </button>
+                {% endif %}
+            {% empty %}
+                <div class="empty">No hay modelos configurados en el cronograma.</div>
+            {% endfor %}
+        </div>
+
+        <div class="second-row">
+            {% for prod in productos %}
+                {% if "segunda" in prod.nombre|lower %}
+                <div class="models-grid">
+                    <button type="button"
+                            class="model-card model-second btn-abrir-modal"
+                            data-id="{{ prod.id }}"
+                            data-nombre="{{ prod.nombre }}"
+                            {% if not turno_actual %}disabled{% endif %}>
+                        <span class="model-icon"><i class="bi bi-recycle"></i></span>
+                        <span class="model-name">{{ prod.nombre }}</span>
+                        <span class="model-action">Registrar <i class="bi bi-arrow-right"></i></span>
+                    </button>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+
+    {% if turno_actual %}
+    <section class="production-panel mt-3">
+        <div class="section-title">
+            <h2><i class="bi bi-chat-left-text me-2"></i>Observaciones</h2>
+        </div>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="registrar_observacion">
+            <textarea name="observacion"
+                      class="form-control"
+                      rows="3"
+                      maxlength="1000"
+                      placeholder="Escribe una novedad, incidencia o mensaje ..."
+                      required></textarea>
+            <div class="d-flex justify-content-end mt-2">
+                <button type="submit" class="btn btn-outline-success fw-bold">
+                    <i class="bi bi-send me-1"></i>Enviar observación
+                </button>
+            </div>
+        </form>
+    </section>
+    {% endif %}
+    {% endif %}
+</div>
+
+{% if imprimir_ahora %}
+<iframe id="marco-impresion"
+        src="{% url 'operadores:etiquetas' %}"
+        title="Etiquetas para imprimir"
+        style="position:fixed;left:-10000px;top:0;width:1024px;height:768px;border:0;pointer-events:none;"
+        aria-hidden="true"></iframe>
+{% endif %}
+
+<!-- Modal de cantidad -->
+<div class="modal fade" id="modalCantidad" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content shadow-lg">
             <form method="POST" id="form-terminal">
                 {% csrf_token %}
-                <input type="hidden" name="producto_id" id="producto_id">
-                
-                <div class="row g-4 justify-content-center">
-                    {% for prod in productos %}
-                    <div class="col-md-4 col-lg-3">
-                        <button type="button" class="btn btn-success w-100 touch-btn d-flex flex-column justify-content-center align-items-center btn-registrar" data-id="{{ prod.id }}">
-                            <i class="bi bi-box-seam fs-1 mb-1"></i>
-                            <span>{{ prod.nombre }}</span>
-                        </button>
+                <input type="hidden" name="accion" value="registrar">
+                <input type="hidden" name="producto_id" id="modal_producto_id">
+
+                <div class="modal-header bg-success text-white">
+                    <div>
+                        <small class="d-block text-white-50 text-uppercase" style="font-size:.68rem;letter-spacing:.08em;">Nuevo registro</small>
+                        <h5 class="modal-title fw-bold mb-0" id="lbl-producto-nombre">Modelo</h5>
+                        <small id="lbl-color-nombre" class="text-white-50">{{ color_actual.nombre|default:"" }}</small>
                     </div>
-                    {% empty %}
-                    <div class="col-12 text-center py-5">
-                        <p class="text-muted fs-5">No hay modelos configurados en el sistema.</p>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <h1 class="text-muted small text-center mb-2">Elija una opción o un número </h1>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="10">10</button></div>
+                        <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="20">20</button></div>
+                        <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="50">50</button></div>
+                        <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="100">100</button></div>
                     </div>
-                    {% endfor %}
+
+                    <div class="input-group mb-3 shadow-sm">
+                        <button class="btn btn-outline-secondary px-3 fs-4 fw-bold" type="button" id="btn-menos">-</button>
+                        <input type="number"
+                               name="cantidad_pacas"
+                               id="input_cantidad_pacas"
+                               class="form-control text-center qty-display"
+                               value="50" min="1" max="1000" readonly required>
+                        <button class="btn btn-outline-secondary px-3 fs-4 fw-bold" type="button" id="btn-mas">+</button>
+                    </div>
+
+                    <div class="row g-2 px-2">
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 num-key" data-num="1">1</button></div>
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 num-key" data-num="2">2</button></div>
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 num-key" data-num="3">3</button></div>
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 num-key" data-num="4">4</button></div>
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 num-key" data-num="5">5</button></div>
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 num-key" data-num="6">6</button></div>
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 num-key" data-num="7">7</button></div>
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 num-key" data-num="8">8</button></div>
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 num-key" data-num="9">9</button></div>
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 text-danger fw-bold" id="btn-borrar"><i class="bi bi-backspace"></i></button></div>
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 num-key" data-num="0">0</button></div>
+                        <div class="col-4"><button type="button" class="btn numpad-btn w-100 text-secondary fw-bold" id="btn-limpiar">C</button></div>
+                    </div>
+
+                    
+                </div>
+
+                <div class="modal-footer bg-light justify-content-between p-3">
+                    <button type="button" class="btn btn-secondary px-4 fw-bold py-2" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success btn-confirm shadow" id="btn-confirmar">
+                        <i class="bi bi-printer-fill me-2"></i> Confirmar
+                    </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
 
-            <!-- Modal para Cambiar Color o Turno a mitad de turno -->
-            <div class="modal fade" id="modalCambio" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <form method="POST">
-                            {% csrf_token %}
-                            <input type="hidden" name="accion" value="configurar">
-                            <div class="modal-header bg-warning">
-                                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-arrow-repeat me-1"></i> Cambiar Turno o Color</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Turno Actual:</label>
-                                    <select name="turno_id" class="form-select" required>
-                                        {% for turno in turnos %}
-                                            <option value="{{ turno.id }}" {% if turno.id == turno_actual.id %}selected{% endif %}>{{ turno.nombre }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Nuevo Color de Producción:</label>
-                                    <select name="color_id" class="form-select" required>
-                                        {% for col in colores %}
-                                            <option value="{{ col.id }}" {% if col.id == color_actual.id %}selected{% endif %}>{{ col.nombre }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-success fw-bold">Aplicar Cambio</button>
-                            </div>
-                        </form>
+<!-- Modal cambiar color -->
+<div class="modal fade" id="modalCambio" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" id="form-modal-color">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="configurar_color">
+                <input type="hidden" name="color_id" id="modal_color_id_input">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-palette me-1"></i> Cambiar color</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="row g-3 justify-content-center">
+                        {% for col in colores %}
+                        <div class="col-6">
+                            <button type="button"
+                                    class="btn btn-outline-dark btn-lg w-100 py-3 fw-bold btn-modal-color {% if col.id == color_actual.id %}active border-success text-success{% endif %}"
+                                    data-id="{{ col.id }}"
+                                    style="{% if col.id == color_actual.id %}border-color: {{ col.hex_color }} !important; color: {{ col.hex_color }} !important;{% endif %}">
+                                <span class="swatch d-inline-block me-2" style="--swatch: {{ col.hex_color }}; width: 14px; height: 14px; border-radius: 4px; vertical-align: middle;"></span>
+                                {{ col.nombre }}
+                            </button>
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
-            </div>
-        {% endif %}
+            </form>
+        </div>
     </div>
+</div>
+{% endwith %}
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const botones = document.querySelectorAll(".btn-registrar");
-            const productoInput = document.getElementById("producto_id");
-            const form = document.getElementById("form-terminal");
-
-            botones.forEach(btn => {
-                btn.addEventListener("click", function () {
-                    // Envía el producto directamente con un solo toque sin recargar selectores
-                    productoInput.value = this.getAttribute("data-id");
-                    form.submit();
-                });
-            });
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    function actualizarReloj() {
+        const el = document.getElementById("reloj");
+        if (!el) return;
+        el.textContent = new Date().toLocaleTimeString("es-EC", {
+            hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false
         });
-    </script>
+    }
+    actualizarReloj();
+    setInterval(actualizarReloj, 1000);
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    const modalElement = document.getElementById("modalCantidad");
+    const modalCantidad = modalElement ? new bootstrap.Modal(modalElement) : null;
+    const modalProductoId = document.getElementById("modal_producto_id");
+    const lblProductoNombre = document.getElementById("lbl-producto-nombre");
+    const inputCantidad = document.getElementById("input_cantidad_pacas");
+    const lblEtiquetas = document.getElementById("lbl-etiquetas");
+
+    function actualizarResumen() {
+        if (inputCantidad && lblEtiquetas) {
+            lblEtiquetas.textContent = inputCantidad.value || "0";
+        }
+    }
+
+    document.querySelectorAll(".btn-abrir-modal").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            if (modalProductoId) modalProductoId.value = this.dataset.id;
+            if (lblProductoNombre) lblProductoNombre.textContent = this.dataset.nombre;
+            if (inputCantidad) inputCantidad.value = "50";
+            actualizarResumen();
+            if (modalCantidad) modalCantidad.show();
+        });
+    });
+
+    document.querySelectorAll(".btn-set-qty").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            if (inputCantidad) inputCantidad.value = btn.dataset.qty;
+            actualizarResumen();
+        });
+    });
+
+    document.getElementById("btn-mas")?.addEventListener("click", function () {
+        const valor = parseInt(inputCantidad.value) || 0;
+        inputCantidad.value = Math.min(valor + 1, 1000);
+        actualizarResumen();
+    });
+
+    document.getElementById("btn-menos")?.addEventListener("click", function () {
+        const valor = parseInt(inputCantidad.value) || 0;
+        inputCantidad.value = Math.max(valor - 1, 1);
+        actualizarResumen();
+    });
+
+    document.querySelectorAll(".num-key").forEach(function (key) {
+        key.addEventListener("click", function () {
+            const num = this.dataset.num;
+            const actual = inputCantidad.value;
+            if (actual === "0" || actual === "50") {
+                inputCantidad.value = num;
+            } else if (actual.length < 4) {
+                inputCantidad.value = actual + num;
+            }
+            actualizarResumen();
+        });
+    });
+
+    document.getElementById("btn-borrar")?.addEventListener("click", function () {
+        const actual = inputCantidad.value;
+        inputCantidad.value = actual.length > 1 ? actual.slice(0, -1) : "0";
+        actualizarResumen();
+    });
+
+    document.getElementById("btn-limpiar")?.addEventListener("click", function () {
+        inputCantidad.value = "0";
+        actualizarResumen();
+    });
+
+    document.querySelectorAll(".btn-elegir-color").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const input = document.getElementById("color_id_input");
+            const form = document.getElementById("form-color-inicial");
+            if (input) input.value = this.dataset.id;
+            if (form) form.submit();
+        });
+    });
+
+    document.querySelectorAll(".btn-modal-color").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const input = document.getElementById("modal_color_id_input");
+            const form = document.getElementById("form-modal-color");
+            if (input) input.value = this.dataset.id;
+            if (form) form.submit();
+        });
+    });
+
+    document.getElementById("btn-confirmar")?.addEventListener("click", function () {
+        const cantidad = parseInt(inputCantidad.value) || 0;
+        if (cantidad < 1) {
+            inputCantidad.value = "1";
+            actualizarResumen();
+        }
+        this.disabled = true;
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+        this.form.submit();
+    });
+
+    const marcoImpresion = document.getElementById("marco-impresion");
+    if (marcoImpresion) {
+        marcoImpresion.addEventListener("load", function () {
+            setTimeout(function () {
+                try {
+                    marcoImpresion.contentWindow.focus();
+                    marcoImpresion.contentWindow.print();
+                } catch (error) {
+                    console.error("No se pudo abrir la impresión automática.", error);
+                }
+            }, 700);
+        });
+    }
+});
+</script>
 </body>
 </html>

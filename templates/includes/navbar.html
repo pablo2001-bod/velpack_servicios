@@ -1,29 +1,30 @@
 <nav class="navbar-custom">
+    <div class="d-flex align-items-center gap-2 min-w-0">
+        <button type="button"
+                class="btn btn-light sidebar-toggle d-lg-none"
+                id="sidebarToggle"
+                aria-label="Abrir menú"
+                aria-controls="sidebar"
+                aria-expanded="false">
+            <i class="bi bi-list"></i>
+        </button>
 
-    <div>
-
-        <h4>
-
-            Sistema de Inventario Velpack
-
-        </h4>
-
+        <div class="min-w-0">
+            <h4 class="text-truncate mb-0">Velpack</h4>
+            <small class="navbar-subtitle d-none d-sm-block">Control de producción, inventario y ventas</small>
+        </div>
     </div>
 
     <div class="user-info">
-
-        <strong>
-
-            Administrador
-
-        </strong>
-
+        <strong>{{ user.get_full_name|default:user.username }}</strong>
         <small>
-
-            Bienvenido al sistema
-
+            {% if user.is_superuser %}
+                Administrador
+            {% elif user.is_staff %}
+                Personal autorizado
+            {% else %}
+                Usuario
+            {% endif %}
         </small>
-
     </div>
-
 </nav>

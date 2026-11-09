@@ -1,39 +1,45 @@
 import openpyxl
+from django.contrib.admin.views.decorators import staff_member_required
+from django.contrib.auth.decorators import user_passes_test
+from django.db.models import Q, Sum
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.dateparse import parse_date
 
-from apps.proveedores.models import IngresoMateriaPrima, Proveedor
-from apps.produccion.models import Paca
-from apps.ventas.models import Venta
-from apps.despachos.models import Despacho
+from apps.accounts.models import PerfilUsuario
 from apps.clientes.models import Cliente
+from apps.despachos.models import Despacho
+from apps.produccion.models import Paca
+from apps.proveedores.models import IngresoMateriaPrima, Proveedor
 from apps.transportes.models import Transporte
-from apps.accounts.models import PerfilUsuario, Rol  # <--- Corregido a 'accounts'
+from apps.ventas.models import Venta
 
+
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def panel_reportes(request):
-    return render(request, 'reportes/panel.html')
+    return render(request, "reportes/panel.html")
 
 
 def _obtener_fechas_filtro(request):
     """Función auxiliar para extraer y validar fechas 'desde' y 'hasta'."""
-    fecha_inicio = request.GET.get('fecha_inicio')
-    fecha_fin = request.GET.get('fecha_fin')
-    
+    fecha_inicio = request.GET.get("fecha_inicio")
+    fecha_fin = request.GET.get("fecha_fin")
+
     inicio = parse_date(fecha_inicio) if fecha_inicio else None
     fin = parse_date(fecha_fin) if fecha_fin else None
     return inicio, fin
 
 
 # ==================== 1. CLIENTES ====================
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def reporte_clientes(request):
     clientes = Cliente.objects.all().order_by('nombre')
     total_clientes = clientes.count()
     return render(request, 'reportes/reporte_clientes.html', {'clientes': clientes, 'total_clientes': total_clientes})
 
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def exportar_clientes_excel(request):
     wb = openpyxl.Workbook()
@@ -49,12 +55,14 @@ def exportar_clientes_excel(request):
 
 
 # ==================== 2. PROVEEDORES ====================
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def reporte_proveedores(request):
     proveedores = Proveedor.objects.all().order_by('nombre')
     total_proveedores = proveedores.count()
     return render(request, 'reportes/reporte_proveedores.html', {'proveedores': proveedores, 'total_proveedores': total_proveedores})
 
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def exportar_proveedores_excel(request):
     wb = openpyxl.Workbook()
@@ -70,12 +78,14 @@ def exportar_proveedores_excel(request):
 
 
 # ==================== 3. TRANSPORTISTAS / CHOFERES ====================
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def reporte_transportes(request):
     transportes = Transporte.objects.all().order_by('placa')
     total_transportes = transportes.count()
     return render(request, 'reportes/reporte_transportes.html', {'transportes': transportes, 'total_transportes': total_transportes})
 
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def exportar_transportes_excel(request):
     wb = openpyxl.Workbook()
@@ -91,26 +101,35 @@ def exportar_transportes_excel(request):
 
 
 # ==================== 4. MATERIA PRIMA ====================
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def reporte_materia_prima(request):
     inicio, fin = _obtener_fechas_filtro(request)
-    ingresos = IngresoMateriaPrima.objects.all()
+    ingresos = IngresoMateriaPrima.objects.select_related("proveedor")
     if inicio:
         ingresos = ingresos.filter(fecha__gte=inicio)
     if fin:
         ingresos = ingresos.filter(fecha__lte=fin)
-    ingresos = ingresos.order_by('-id')
-    total_kg = sum(item.peso_neto for item in ingresos)
-    
-    context = {'ingresos': ingresos, 'total_kg': total_kg, 'fecha_inicio': request.GET.get('fecha_inicio', ''), 'fecha_fin': request.GET.get('fecha_fin', '')}
-    return render(request, 'reportes/reporte_materia_prima.html', context)
 
+    total_kg = ingresos.aggregate(total=Sum("peso_neto"))["total"] or 0
+
+    context = {
+        "ingresos": ingresos.order_by("-id"),
+        "total_kg": total_kg,
+        "fecha_inicio": request.GET.get("fecha_inicio", ""),
+        "fecha_fin": request.GET.get("fecha_fin", ""),
+    }
+    return render(request, "reportes/reporte_materia_prima.html", context)
+
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def exportar_materia_prima_excel(request):
     inicio, fin = _obtener_fechas_filtro(request)
-    ingresos = IngresoMateriaPrima.objects.all()
-    if inicio: ingresos = ingresos.filter(fecha__gte=inicio)
-    if fin: ingresos = ingresos.filter(fecha__lte=fin)
+    ingresos = IngresoMateriaPrima.objects.select_related("proveedor")
+    if inicio:
+        ingresos = ingresos.filter(fecha__gte=inicio)
+    if fin:
+        ingresos = ingresos.filter(fecha__lte=fin)
     
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -124,6 +143,7 @@ def exportar_materia_prima_excel(request):
     return response
 
 # ==================== 5. PRODUCCIÓN ====================
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def reporte_produccion(request):
     inicio, fin = _obtener_fechas_filtro(request)
@@ -143,6 +163,7 @@ def reporte_produccion(request):
     }
     return render(request, 'reportes/reporte_produccion.html', context)
 
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def exportar_produccion_excel(request):
     inicio, fin = _obtener_fechas_filtro(request)
@@ -178,6 +199,7 @@ def exportar_produccion_excel(request):
     return response
 
 # ==================== 6. VENTAS ====================
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def reporte_ventas(request):
     inicio, fin = _obtener_fechas_filtro(request)
@@ -186,21 +208,21 @@ def reporte_ventas(request):
         ventas = ventas.filter(fecha__gte=inicio)
     if fin:
         ventas = ventas.filter(fecha__lte=fin)
-    ventas = ventas.order_by('-fecha')
-    
-    # Cálculos separados
-    total_cobrado = sum(v.total for v in ventas if v.estado_pago == 'pagado')
-    total_por_cobrar = sum(v.total for v in ventas if v.estado_pago == 'pendiente')
-    
-    context = {
-        'ventas': ventas, 
-        'total_cobrado': total_cobrado,
-        'total_por_cobrar': total_por_cobrar,
-        'fecha_inicio': request.GET.get('fecha_inicio', ''), 
-        'fecha_fin': request.GET.get('fecha_fin', '')
-    }
-    return render(request, 'reportes/reporte_ventas.html', context)
+    totales = ventas.aggregate(
+        total_cobrado=Sum("total", filter=Q(estado_pago="pagado")),
+        total_por_cobrar=Sum("total", filter=Q(estado_pago="pendiente")),
+    )
 
+    context = {
+        "ventas": ventas.select_related("cliente").order_by("-fecha"),
+        "total_cobrado": totales["total_cobrado"] or 0,
+        "total_por_cobrar": totales["total_por_cobrar"] or 0,
+        "fecha_inicio": request.GET.get("fecha_inicio", ""),
+        "fecha_fin": request.GET.get("fecha_fin", ""),
+    }
+    return render(request, "reportes/reporte_ventas.html", context)
+
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def exportar_ventas_excel(request):
     inicio, fin = _obtener_fechas_filtro(request)
@@ -231,17 +253,19 @@ def exportar_ventas_excel(request):
             v.observacion or ''
         ])
     
-    # Calcular los totales por separado
-    total_por_cobrar = sum(float(v.total) for v in ventas if v.estado_pago == 'pendiente')
-    total_cobrado = sum(float(v.total) for v in ventas if v.estado_pago == 'pagado')
-    
+    totales = ventas.aggregate(
+        total_cobrado=Sum("total", filter=Q(estado_pago="pagado")),
+        total_por_cobrar=Sum("total", filter=Q(estado_pago="pendiente")),
+    )
+    total_por_cobrar = float(totales["total_por_cobrar"] or 0)
+    total_cobrado = float(totales["total_cobrado"] or 0)
+
     # Dejar un espacio de filas vacías y agregar la sección de totales al final
-    ws.append([]) # Fila vacía
-    ws.append([]) # Fila vacía
-    
-    # Etiquetas de totales (en columnas F y G por ejemplo, o ajustadas a tu diseño)
-    ws.append(['', '', '', '', '', 'Por Cobrar', 'Cobrado'])
-    ws.append(['', '', '', '', '', total_por_cobrar, total_cobrado])
+    ws.append([])
+    ws.append([])
+
+    ws.append(["", "", "", "", "", "Por Cobrar", "Cobrado"])
+    ws.append(["", "", "", "", "", total_por_cobrar, total_cobrado])
     
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename=reporte_ventas.xlsx'
@@ -250,25 +274,32 @@ def exportar_ventas_excel(request):
 
 
 # ==================== 7. DESPACHOS ====================
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def reporte_despachos(request):
     inicio, fin = _obtener_fechas_filtro(request)
-    despachos = Despacho.objects.all()
+    despachos = Despacho.objects.select_related("cliente", "transporte")
     if inicio:
         despachos = despachos.filter(fecha__gte=inicio)
     if fin:
         despachos = despachos.filter(fecha__lte=fin)
-    despachos = despachos.order_by('-fecha')
-    
-    context = {'despachos': despachos, 'fecha_inicio': request.GET.get('fecha_inicio', ''), 'fecha_fin': request.GET.get('fecha_fin', '')}
-    return render(request, 'reportes/reporte_despachos.html', context)
 
+    context = {
+        "despachos": despachos.order_by("-fecha"),
+        "fecha_inicio": request.GET.get("fecha_inicio", ""),
+        "fecha_fin": request.GET.get("fecha_fin", ""),
+    }
+    return render(request, "reportes/reporte_despachos.html", context)
+
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def exportar_despachos_excel(request):
     inicio, fin = _obtener_fechas_filtro(request)
-    despachos = Despacho.objects.all()
-    if inicio: despachos = despachos.filter(fecha__gte=inicio)
-    if fin: despachos = despachos.filter(fecha__lte=fin)
+    despachos = Despacho.objects.select_related("cliente", "transporte")
+    if inicio:
+        despachos = despachos.filter(fecha__gte=inicio)
+    if fin:
+        despachos = despachos.filter(fecha__lte=fin)
     
     wb = openpyxl.Workbook()
     ws = wb.active
@@ -282,6 +313,7 @@ def exportar_despachos_excel(request):
     return response
 
 # ==================== 6. USUARIOS ====================
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def reporte_usuarios(request):
     # Obtenemos los perfiles con su usuario y rol optimizados
@@ -292,6 +324,7 @@ def reporte_usuarios(request):
     }
     return render(request, 'reportes/reporte_usuarios.html', context)
 
+@user_passes_test(lambda u: u.is_superuser)
 @staff_member_required
 def exportar_usuarios_excel(request):
     perfiles = PerfilUsuario.objects.select_related('usuario', 'rol').all().order_by('id')
