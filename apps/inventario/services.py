@@ -38,7 +38,7 @@ MODELOS_STOCK = (
     ("extra", "total_extragruesa", ("Cubeta Extragruesa", "Cubeta Extra")),
 )
 
-PRODUCTOS_SEGUNDA = ("Cubetas Especial", "Cubeta Segunda", "Cubeta de Segunda")
+PRODUCTOS_SEGUNDA = ("Cubeta Económica",)
 
 # Color representativo de cada línea para gráficos y puntos de la tabla.
 COLORES_INFO = {
@@ -56,7 +56,7 @@ RESUMEN_MODELOS = (
     ("mediana", "Mediana", "total_mediana", "bi-box", "#1565c0"),
     ("gruesa", "Gruesa", "total_gruesa", "bi-boxes", "#f59e0b"),
     ("extragruesa", "Extragruesa", "total_extragruesa", "bi-stack", "#7c3aed"),
-    ("especial", "Cubetas Especial", "total_cubetas_especial", "bi-stars", "#0d9488"),
+    ("especial", "Cubeta Económica", "total_cubetas_especial", "bi-stars", "#0d9488"),
 )
 
 

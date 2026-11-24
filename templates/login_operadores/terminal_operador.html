@@ -297,6 +297,9 @@
             .operator-block { padding-left: 0; border-left: 0; }
             .header-actions { width: 100%; }
             .header-actions .btn-terminal { flex: 1 1 auto; justify-content: center; }
+            .setup-panel { margin: 16px auto; padding: 18px; border-radius: 14px; }
+            .color-grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+            #marco-impresion { display: none !important; }
         }
     </style>
 </head>
@@ -417,6 +420,15 @@
         </div>
     </section>
 
+    {% if ultimo_pdf_id %}
+    <div class="alert alert-light border d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+        <span><i class="bi bi-file-earmark-pdf me-1"></i>Las etiquetas también se guardaron en PDF.</span>
+        <a href="{% url 'produccion:descargar_pdf' ultimo_pdf_id %}" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-download me-1"></i>Descargar PDF
+        </a>
+    </div>
+    {% endif %}
+
     <section class="production-panel">
         <div class="section-title">
             <h2>Toque el modelo a registrar</h2>
@@ -425,7 +437,7 @@
 
         <div class="models-grid">
             {% for prod in productos %}
-                {% if "segunda" not in prod.nombre|lower %}
+                {% if not prod.es_segunda %}
                 <button type="button"
                         class="model-card btn-abrir-modal"
                         data-id="{{ prod.id }}"
@@ -444,7 +456,7 @@
 
         <div class="second-row">
             {% for prod in productos %}
-                {% if "segunda" in prod.nombre|lower %}
+                {% if prod.es_segunda %}
                 <div class="models-grid">
                     <button type="button"
                             class="model-card model-second btn-abrir-modal"
@@ -473,8 +485,7 @@
                       class="form-control"
                       rows="3"
                       maxlength="1000"
-                      placeholder="Escribe una novedad, incidencia o mensaje ..."
-                      required></textarea>
+                       placeholder="Sin novedades. Escribe solo si hay una incidencia o mensaje."></textarea>
             <div class="d-flex justify-content-end mt-2">
                 <button type="submit" class="btn btn-outline-success fw-bold">
                     <i class="bi bi-send me-1"></i>Enviar observación
@@ -518,7 +529,7 @@
                     <div class="row g-2 mb-3">
                         <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="10">10</button></div>
                         <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="20">20</button></div>
-                        <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="50">50</button></div>
+                        <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="{{ pacas_por_lote }}">50</button></div>
                         <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="100">100</button></div>
                     </div>
 
@@ -528,7 +539,7 @@
                                name="cantidad_pacas"
                                id="input_cantidad_pacas"
                                class="form-control text-center qty-display"
-                               value="50" min="1" max="1000" readonly required>
+                               value="{{ pacas_por_lote }}" min="1" max="1000" readonly required>
                         <button class="btn btn-outline-secondary px-3 fs-4 fw-bold" type="button" id="btn-mas">+</button>
                     </div>
 
@@ -624,7 +635,7 @@ document.addEventListener("DOMContentLoaded", function () {
         btn.addEventListener("click", function () {
             if (modalProductoId) modalProductoId.value = this.dataset.id;
             if (lblProductoNombre) lblProductoNombre.textContent = this.dataset.nombre;
-            if (inputCantidad) inputCantidad.value = "50";
+            if (inputCantidad) inputCantidad.value = "{{ pacas_por_lote }}";
             actualizarResumen();
             if (modalCantidad) modalCantidad.show();
         });
@@ -653,7 +664,7 @@ document.addEventListener("DOMContentLoaded", function () {
         key.addEventListener("click", function () {
             const num = this.dataset.num;
             const actual = inputCantidad.value;
-            if (actual === "0" || actual === "50") {
+            if (actual === "0" || actual === "{{ pacas_por_lote }}") {
                 inputCantidad.value = num;
             } else if (actual.length < 4) {
                 inputCantidad.value = actual + num;
@@ -701,6 +712,13 @@ document.addEventListener("DOMContentLoaded", function () {
         this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
         this.form.submit();
     });
+
+    const cierreAutomaticoEn = Number("{{ cierre_automatico_en|default:0 }}") || 0;
+    if (cierreAutomaticoEn > 0) {
+        setTimeout(function () {
+            window.location.href = "{% url 'operadores:logout_operador' %}";
+        }, cierreAutomaticoEn * 1000);
+    }
 
     const marcoImpresion = document.getElementById("marco-impresion");
     if (marcoImpresion) {

@@ -5,11 +5,17 @@ from datetime import datetime, time, timedelta
 from django.db import transaction
 from django.utils import timezone
 
-from .models import Paca, Turno
+from .models import ConfiguracionProduccion, DetalleProduccion, Paca, Turno
 
 # El día operativo arranca a las 06:00 y no a la medianoche.
 HORA_CORTE = time(6, 0)
-PACAS_POR_LOTE = 50
+PACAS_POR_LOTE_POR_DEFECTO = 28
+MARGEN_TURNO_MINUTOS = 10
+
+
+def obtener_pacas_por_lote():
+    """Tamaño de lote configurado desde la parte administrativa."""
+    return ConfiguracionProduccion.obtener().pacas_por_lote
 
 
 def inicio_dia_operativo(momento=None):
@@ -64,6 +70,68 @@ def turno_en_curso():
     return None
 
 
+def _minutos(hora):
+    return hora.hour * 60 + hora.minute + hora.second / 60
+
+
+def _desde(desde, hora):
+    """Minutos transcurridos entre dos horas, considerando medianoche."""
+    return (_minutos(hora) - _minutos(desde)) % 1440
+
+
+def _turno_en_franja(turno, hora):
+    if turno.hora_inicio <= turno.hora_fin:
+        return turno.hora_inicio <= hora < turno.hora_fin
+    return hora >= turno.hora_inicio or hora < turno.hora_fin
+
+
+def turno_para_inicio(momento=None):
+    """Turno con el que debe iniciar sesión un operador.
+
+    Se permite el margen de ``MARGEN_TURNO_MINUTOS`` antes del inicio y después
+    del fin. Si dos turnos se solapan por el margen, gana el que está por
+    empezar y luego el que está en curso.
+    """
+    momento = momento or timezone.now()
+    hora = timezone.localtime(momento).time() if timezone.is_aware(momento) else momento.time()
+    turnos = list(Turno.objects.filter(activo=True))
+
+    por_empezar = [
+        turno
+        for turno in turnos
+        if 0 < _desde(hora, turno.hora_inicio) <= MARGEN_TURNO_MINUTOS
+    ]
+    if por_empezar:
+        return min(por_empezar, key=lambda turno: _desde(hora, turno.hora_inicio))
+
+    en_curso = [turno for turno in turnos if _turno_en_franja(turno, hora)]
+    if en_curso:
+        return min(en_curso, key=lambda turno: _desde(hora, turno.hora_fin))
+
+    recien_terminados = [
+        turno
+        for turno in turnos
+        if 0 < _desde(turno.hora_fin, hora) <= MARGEN_TURNO_MINUTOS
+    ]
+    if recien_terminados:
+        return max(recien_terminados, key=lambda turno: _desde(turno.hora_fin, hora))
+
+    return None
+
+
+def limite_sesion(turno, momento=None):
+    """Momento en el que se cierra automáticamente la sesión del operador."""
+    momento = momento or timezone.now()
+    local = timezone.localtime(momento)
+    inicio = datetime.combine(local.date(), turno.hora_inicio, tzinfo=local.tzinfo)
+    fin = datetime.combine(local.date(), turno.hora_fin, tzinfo=local.tzinfo)
+    if fin <= inicio:
+        fin += timedelta(days=1)
+    if local > fin + timedelta(minutes=MARGEN_TURNO_MINUTOS):
+        fin += timedelta(days=1)
+    return fin + timedelta(minutes=MARGEN_TURNO_MINUTOS)
+
+
 def _codigo_producto_color(producto, color):
     return f"{producto.codigo.strip().upper()}{color.codigo.strip().upper()}"
 
@@ -71,12 +139,13 @@ def _codigo_producto_color(producto, color):
 def generar_pacas(detalle, cantidad):
     """Crea ``cantidad`` pacas consecutivas para un detalle de producción.
 
-    La numeración es global por producto/color dentro del día operativo, y el
-    lote se calcula en bloques de 50 pacas.
+    La numeración es global por producto/color dentro del día operativo y el
+    lote se calcula con el tamaño configurado desde la administración.
     """
     if cantidad <= 0:
         return []
 
+    pacas_por_lote = obtener_pacas_por_lote()
     produccion = detalle.produccion
     producto = detalle.producto
     color = detalle.color
@@ -101,7 +170,7 @@ def generar_pacas(detalle, cantidad):
 
         for i in range(1, cantidad + 1):
             numero_paca = total_previo + i
-            num_lote = ((numero_paca - 1) // PACAS_POR_LOTE) + 1
+            num_lote = ((numero_paca - 1) // pacas_por_lote) + 1
             codigo_unico = (
                 f"{iniciales}{fecha_formateada}{codigo_producto_color}"
                 f"{numero_paca:03d}L{num_lote:02d}"
@@ -116,3 +185,33 @@ def generar_pacas(detalle, cantidad):
             )
 
     return creadas
+
+
+def registrar_pacas(produccion, producto, color, cantidad):
+    """Registra un lote de pacas y devuelve el detalle y las pacas creadas."""
+    with transaction.atomic():
+        detalle, _ = DetalleProduccion.objects.get_or_create(
+            produccion=produccion,
+            producto=producto,
+            color=color,
+            defaults={"cantidad_pacas": 0},
+        )
+        detalle.cantidad_pacas += cantidad
+        detalle.save()
+        pacas = generar_pacas(detalle, cantidad)
+    return detalle, pacas
+
+
+def recalcular_lotes_y_codigos():
+    """Recalcula lote y código de barras de las pacas al cambiar el lote."""
+    pacas_por_lote = obtener_pacas_por_lote()
+    pacas = list(Paca.objects.select_related(
+        "detalle__produccion__operador", "detalle__producto", "detalle__color"
+    ))
+    for paca in pacas:
+        paca.lote = ((paca.numero_paca - 1) // pacas_por_lote) + 1
+        prefijo = paca.codigo_unico.rsplit("L", 1)[0]
+        paca.codigo_unico = f"{prefijo}L{paca.lote:02d}"
+    with transaction.atomic():
+        Paca.objects.bulk_update(pacas, ["lote", "codigo_unico"])
+    return len(pacas)

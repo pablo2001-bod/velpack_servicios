@@ -129,6 +129,17 @@
                     Usuarios
                 </a>
             </li>
+
+            <li>
+                <a href="{% url 'lista_avisos' %}"
+                   class="{% if 'avisos' in request.path %}active{% endif %}">
+                    <i class="bi bi-bell"></i>
+                    Avisos internos
+                    {% if avisos_pendientes %}
+                    <span class="badge bg-danger float-end">{{ avisos_pendientes }}</span>
+                    {% endif %}
+                </a>
+            </li>
             {% endif %}
 
             <li class="sidebar-divider" aria-hidden="true"></li>

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Rol, PerfilUsuario
+from .models import AvisoInterno, Rol, PerfilUsuario
 
 
 @admin.register(Rol)
@@ -35,3 +35,10 @@ class PerfilUsuarioAdmin(admin.ModelAdmin):
         "activo",
         "rol",
     )
+
+
+@admin.register(AvisoInterno)
+class AvisoInternoAdmin(admin.ModelAdmin):
+    list_display = ("titulo", "tipo", "usuario", "operador", "leido", "creado_en")
+    list_filter = ("tipo", "leido")
+    search_fields = ("titulo", "mensaje", "usuario__username")

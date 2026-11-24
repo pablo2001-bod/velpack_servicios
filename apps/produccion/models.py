@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 
@@ -186,6 +187,62 @@ class Paca(models.Model):
 
     def __str__(self):
         return self.codigo_unico
+
+
+class ConfiguracionProduccion(models.Model):
+    """Parámetros ajustables de producción (por ahora, el tamaño del lote)."""
+
+    pacas_por_lote = models.PositiveIntegerField(
+        default=28,
+        validators=[MinValueValidator(1)],
+        verbose_name="Pacas por lote",
+    )
+
+    class Meta:
+        verbose_name = "Configuración de Producción"
+        verbose_name_plural = "Configuración de Producción"
+
+    @classmethod
+    def obtener(cls):
+        configuracion, _ = cls.objects.get_or_create(pk=1)
+        return configuracion
+
+    def save(self, *args, **kwargs):
+        anterior = None
+        if self.pk:
+            anterior = type(self).objects.filter(pk=self.pk).first()
+        super().save(*args, **kwargs)
+        if anterior is None or anterior.pacas_por_lote != self.pacas_por_lote:
+            from .services import recalcular_lotes_y_codigos
+
+            recalcular_lotes_y_codigos()
+
+    def __str__(self):
+        return f"{self.pacas_por_lote} pacas por lote"
+
+
+class ArchivoEtiquetas(models.Model):
+    """PDF de etiquetas generado en el servidor."""
+
+    archivo = models.FileField(upload_to="etiquetas/pdf/%Y/%m/%d/")
+    descripcion = models.CharField(max_length=200)
+    cantidad_pacas = models.PositiveIntegerField(default=0)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    produccion = models.ForeignKey(
+        Produccion,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="archivos_pdf",
+    )
+
+    class Meta:
+        ordering = ["-creado_en"]
+        verbose_name = "Archivo de Etiquetas (PDF)"
+        verbose_name_plural = "Archivos de Etiquetas (PDF)"
+
+    def __str__(self):
+        return self.descripcion
 
 
 class CronogramaDiario(models.Model):

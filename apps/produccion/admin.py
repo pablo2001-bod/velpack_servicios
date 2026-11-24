@@ -1,6 +1,8 @@
 from django.contrib import admin
 
 from .models import (
+    ArchivoEtiquetas,
+    ConfiguracionProduccion,
     CronogramaDiario,
     DetalleProduccion,
     Operador,
@@ -49,3 +51,14 @@ class CronogramaDiarioAdmin(admin.ModelAdmin):
     list_display = ("fecha", "producto", "activo")
     list_filter = ("fecha", "activo")
     search_fields = ("producto__nombre",)
+
+
+@admin.register(ConfiguracionProduccion)
+class ConfiguracionProduccionAdmin(admin.ModelAdmin):
+    list_display = ("pacas_por_lote",)
+
+
+@admin.register(ArchivoEtiquetas)
+class ArchivoEtiquetasAdmin(admin.ModelAdmin):
+    list_display = ("descripcion", "cantidad_pacas", "creado_en")
+    readonly_fields = ("creado_en",)

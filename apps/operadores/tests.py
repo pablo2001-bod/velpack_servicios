@@ -1,10 +1,12 @@
-from datetime import time
+from datetime import time, timedelta
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from apps.catalogos.models import Color, Producto
 from apps.produccion.models import (
+    ArchivoEtiquetas,
     DetalleProduccion,
     Operador,
     Paca,
@@ -26,6 +28,10 @@ class TerminalOperadorTests(TestCase):
             hora_inicio=time(0, 0),
             hora_fin=time(23, 59, 59, 999999),
         )
+
+    def tearDown(self):
+        for archivo in ArchivoEtiquetas.objects.all():
+            archivo.archivo.delete()
 
     def test_login_redirige_a_terminal(self):
         response = self.client.post(
@@ -87,8 +93,8 @@ class TerminalOperadorTests(TestCase):
         response = self.client.get(reverse("operadores:terminal_operador"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Selecciona tu color de trabajo")
-        self.assertContains(response, "Etiquetas de hoy")
+        self.assertContains(response, "Selecciona un color")
+        self.assertContains(response, "color-grid")
 
     def test_terminal_renderiza_modelos_con_color_elegido(self):
         session = self.client.session
@@ -100,7 +106,7 @@ class TerminalOperadorTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Toque el modelo a registrar")
-        self.assertContains(response, "Confirmar e imprimir")
+        self.assertContains(response, "Confirmar")
 
     def test_etiquetas_incluyen_barcode_qr_y_lote(self):
         session = self.client.session
@@ -123,3 +129,44 @@ class TerminalOperadorTests(TestCase):
         self.assertIn("L02", contenido)
         self.assertIn("Código de barras", contenido)
         self.assertIn("QR", contenido)
+
+    def test_login_fuera_de_ventana_del_turno(self):
+        from apps.produccion.models import Turno
+
+        Turno.objects.all().delete()
+        response = self.client.post(
+            reverse("operadores:login_operador"),
+            {"cedula": self.operador.cedula},
+        )
+
+        self.assertRedirects(response, reverse("operadores:login_operador"))
+        self.assertNotIn("operador_id", self.client.session)
+
+    def test_sesion_se_cierra_automaticamente_despues_del_turno(self):
+        session = self.client.session
+        session["operador_id"] = self.operador.id
+        session["color_id"] = self.color.id
+        session["turno_limite"] = (
+            timezone.now() - timedelta(minutes=1)
+        ).isoformat()
+        session.save()
+
+        response = self.client.get(reverse("operadores:terminal_operador"))
+
+        self.assertRedirects(response, reverse("operadores:login_operador"))
+        self.assertNotIn("operador_id", self.client.session)
+
+    def test_registro_deja_enlace_de_descarga_pdf(self):
+        session = self.client.session
+        session["operador_id"] = self.operador.id
+        session["color_id"] = self.color.id
+        session.save()
+
+        response = self.client.post(
+            reverse("operadores:terminal_operador"),
+            {"producto_id": self.producto.id, "cantidad_pacas": "2"},
+            follow=True,
+        )
+
+        self.assertContains(response, "Descargar PDF")
+        self.assertIsNotNone(self.client.session.get("ultimo_pdf_id"))

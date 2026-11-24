@@ -149,6 +149,9 @@
         </div>
         <div class="toolbar-actions">
             <a href="{{ volver_url }}" class="btn">&larr; {{ volver_texto }}</a>
+            {% if pdf_url %}
+            <a href="{{ pdf_url }}" class="btn btn-outline-primary">Descargar PDF</a>
+            {% endif %}
             <button type="button" class="btn btn-primary" onclick="window.print()">
                 Imprimir etiquetas
             </button>

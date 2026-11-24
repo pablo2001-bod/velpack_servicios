@@ -6,11 +6,11 @@
         <h2>Lista de Ventas</h2>
         
         <!-- Formulario de búsqueda -->
-        <form method="GET" class="d-flex">
-            <input type="text" name="q" class="form-control me-2" placeholder="Buscar por RUC o Factura..." value="{{ query|default:'' }}">
+        <form method="GET" class="d-flex flex-wrap gap-2 w-100 filtro-fechas">
+            <input type="text" name="q" class="form-control" placeholder="Buscar por RUC o Factura..." value="{{ query|default:'' }}">
             <button type="submit" class="btn btn-outline-primary">Buscar</button>
             {% if query %}
-                <a href="{% url 'ventas:lista_ventas' %}" class="btn btn-secondary ms-2">Limpiar</a>
+                <a href="{% url 'ventas:lista_ventas' %}" class="btn btn-secondary">Limpiar</a>
             {% endif %}
         </form>
 

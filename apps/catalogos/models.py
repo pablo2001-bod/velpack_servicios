@@ -24,6 +24,11 @@ class Producto(models.Model):
 
     activo = models.BooleanField(default=True)
 
+    es_segunda = models.BooleanField(
+        default=False,
+        verbose_name="Línea económica (segunda calidad)",
+    )
+
     def __str__(self):
         return self.nombre
 

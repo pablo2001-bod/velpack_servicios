@@ -16,11 +16,14 @@ html{
 body{
     background:#f4f6f9;
     color:#333;
-    overflow-x:hidden;
 }
 
 .min-w-0{
     min-width:0;
+}
+
+.etiqueta-movil{
+    display:none;
 }
 
 body.sidebar-open{
@@ -1002,4 +1005,109 @@ body.sidebar-open{
 .dashboard-page .table-stock tfoot td{
     padding-top:10px;
     padding-bottom:10px;
+}
+
+/* Mejoras de responsividad para administración y cronograma */
+.cronograma-actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:.5rem;
+}
+
+.table-responsive{
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+}
+
+.navbar-custom .btn{
+    flex:0 0 auto;
+}
+
+@media (max-width: 991.98px){
+    .cronograma-actions .btn,
+    .cronograma-actions a{
+        flex:1 1 auto;
+    }
+    .card-body form .btn,
+    .card-body .d-flex > .btn{
+        min-height:40px;
+    }
+}
+
+@media (max-width: 575.98px){
+    .cronograma-actions{
+        width:100%;
+    }
+    .cronograma-actions .btn,
+    .cronograma-actions a{
+        width:100%;
+        justify-content:center;
+    }
+    .navbar-custom .user-info strong{
+        max-width:110px;
+    }
+    .card-body.p-4{
+        padding:1rem !important;
+    }
+    .codigo-paca-chip{
+        display:block !important;
+        width:100%;
+        word-break:break-all;
+        font-size:1.1rem !important;
+    }
+    .filtro-fechas{
+        width:100%;
+    }
+    .filtro-fechas .form-control{
+        flex:1 1 100%;
+        min-width:0;
+    }
+    .filtro-fechas .btn,
+    .filtro-fechas a.btn{
+        flex:1 1 auto;
+        text-align:center;
+    }
+    .rango-fechas-label{
+        display:none;
+    }
+    .formset-header{
+        display:none !important;
+    }
+    .campo-movil{
+        width:100%;
+    }
+    .campo-movil .etiqueta-movil{
+        display:block;
+        margin-bottom:.25rem;
+        font-size:.75rem;
+        font-weight:700;
+        color:#6c757d;
+    }
+    .guia-impresion{
+        padding:.75rem !important;
+    }
+    .guia-impresion h3,
+    .guia-impresion h4,
+    .guia-impresion h5{
+        font-size:1rem !important;
+    }
+    .guia-impresion .table{
+        font-size:11px !important;
+    }
+    .guia-impresion td,
+    .guia-impresion th{
+        white-space:normal !important;
+    }
+}
+
+@media (min-width: 576px) and (max-width: 767.98px){
+    .filtro-fechas .form-control{
+        flex:1 1 120px;
+    }
+}
+
+@media (min-width: 768px){
+    .etiqueta-movil{
+        display:none !important;
+    }
 }

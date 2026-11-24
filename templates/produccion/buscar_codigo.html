@@ -73,7 +73,7 @@ Buscar Código de Paca
                     <div class="card-body p-4 bg-light">
                         <div class="text-center mb-4">
                             <small class="text-muted d-block text-uppercase fw-bold">Código Único de la Paca</small>
-                            <h3 class="fw-bold text-dark font-monospace bg-white p-3 rounded border border-success d-inline-block mt-1">
+                            <h3 class="fw-bold text-dark font-monospace bg-white p-3 rounded border border-success d-inline-block mt-1 codigo-paca-chip">
                                 {{ paca.codigo_unico }}
                             </h3>
                             <div class="row justify-content-center align-items-center g-3 mt-2">
@@ -132,7 +132,7 @@ Buscar Código de Paca
                                 <hr class="my-3">
                                 <label class="text-muted small fw-bold d-block">Observaciones de la Producción</label>
                                 <p class="text-dark bg-white p-3 rounded border mt-1 mb-0 italic">
-                                    {{ paca.detalle.produccion.observacion|default:"Sin novedades u observaciones registradas para esta jornada de producción." }}
+                                    {{ paca.detalle.produccion.observacion|default:"Sin novedades" }}
                                 </p>
                             </div>
                         </div>

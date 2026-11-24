@@ -38,7 +38,7 @@ class SmokeTests(TestCase):
         cls.producto = Producto.objects.create(nombre="Inicial", codigo="I")
         cls.color = Color.objects.create(nombre="Amarillo", codigo="A")
         cls.turno = Turno.objects.create(
-            nombre="Matutino", hora_inicio="06:00", hora_fin="14:00"
+            nombre="Todo el día", hora_inicio="00:00", hora_fin="23:59:59"
         )
         cls.operador = Operador.objects.create(
             nombre_completo="Operador Prueba", cedula="0102030405"
@@ -139,6 +139,13 @@ class SmokeTests(TestCase):
             reverse("produccion:ficha_paca", args=[self.detalle.pacas.first().codigo_unico]),
             reverse("ficha_paca_corta", args=[self.detalle.pacas.first().codigo_unico]),
             reverse("produccion:etiquetas", args=[self.produccion.id]),
+            reverse("produccion:modelo_crear"),
+            reverse("produccion:color_crear"),
+            reverse("produccion:configuracion"),
+            reverse("produccion:agregar_produccion"),
+            reverse("crear_turno"),
+            reverse("editar_turno", args=[self.turno.id]),
+            reverse("lista_avisos"),
             reverse("clientes:lista_clientes"),
             reverse("clientes:crear_cliente"),
             reverse("clientes:editar_cliente", args=[self.cliente.id]),
@@ -240,7 +247,7 @@ class SmokeTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="marco-impresion"')
-        self.assertContains(response, "se imprimirán automáticamente")
+        self.assertContains(response, "Descargar PDF")
 
     def test_flujos_post(self):
         # Cliente
@@ -311,6 +318,19 @@ class SmokeTests(TestCase):
                 "fecha": timezone.localdate().isoformat(),
                 "direccion_entrega": "Direccion",
                 "estado": "PENDIENTE",
+                "ruc_emisor": "0591746284001",
+                "direccion_emisor": "Av. Eloy Alfaro y Los Molinos, Latacunga",
+                "ciudad_emisor": "Latacunga - Ecuador",
+                "contribuyente": "Especial 011",
+                "agente_retencion": "Resolución No. 1",
+                "ambiente": "PRODUCCIÓN",
+                "emision": "NORMAL",
+                "punto_partida": "LATACUNGA",
+                "estado_transporte": "En tránsito",
+                "motivo": "VENTA",
+                "ruta": "LATACUNGA - SALCEDO",
+                "correo_empresa": "velpack.2021@gmail.com",
+                "telefono_empresa": "03-2800-000",
                 "detalles-TOTAL_FORMS": "1",
                 "detalles-INITIAL_FORMS": "0",
                 "detalles-MIN_NUM_FORMS": "0",
@@ -376,7 +396,7 @@ class SmokeTests(TestCase):
             {
                 "rol": "usuario",
                 "username": "usuario_nuevo",
-                "password": "ClaveSegura123",
+                "password": "ClaveSegura123!",
                 "email": "usuario@example.com",
                 "first_name": "Usuario",
                 "last_name": "Nuevo",

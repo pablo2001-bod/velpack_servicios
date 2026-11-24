@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar Producción - Velpack{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0 fw-bold">Agregar producción</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" autocomplete="off" id="produccion-form">
+                        {% csrf_token %}
+                        {{ form.non_field_errors }}
+                        <div class="row g-3">
+                            {% for field in form %}
+                            <div class="col-12 col-md-6">
+                                {{ field.label_tag }}
+                                {{ field }}
+                                {% for error in field.errors %}
+                                <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="border rounded p-3 mt-4 bg-light">
+                            <div class="row fw-bold text-muted mb-2 formset-header">
+                                <div class="col-md-4">Modelo</div>
+                                <div class="col-md-3">Color</div>
+                                <div class="col-md-3">Cantidad de pacas</div>
+                                <div class="col-md-2 text-center">Acción</div>
+                            </div>
+                            {{ items.management_form }}
+                            {{ items.non_form_errors }}
+                            <div id="items-container">
+                                {% for item in items %}
+                                <div class="row mb-2 item-row align-items-center">
+                                    {% for hidden in item.hidden_fields %}{{ hidden }}{% endfor %}
+                                    <div class="col-md-4 campo-movil">
+                                        <span class="etiqueta-movil">Modelo</span>
+                                        {{ item.producto }}
+                                    </div>
+                                    <div class="col-md-3 campo-movil">
+                                        <span class="etiqueta-movil">Color</span>
+                                        {{ item.color }}
+                                    </div>
+                                    <div class="col-md-3 campo-movil">
+                                        <span class="etiqueta-movil">Cantidad de pacas</span>
+                                        {{ item.cantidad_pacas }}
+                                    </div>
+                                    <div class="col-md-2 text-center">
+                                        <button type="button" class="btn btn-danger btn-sm eliminar-item">Eliminar</button>
+                                    </div>
+                                    {% for error in item.producto.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                    {% for error in item.color.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                    {% for error in item.cantidad_pacas.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm mt-2" id="add-item">Añadir modelo</button>
+                        </div>
+
+                        <div class="d-flex flex-wrap justify-content-end gap-2 border-top pt-3 mt-4">
+                            <a href="{% url 'produccion:registrar' %}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-success px-4">Registrar producción</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const container = document.getElementById('items-container');
+        const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+        const addButton = document.getElementById('add-item');
+
+        function actualizarIndices() {
+            const filas = container.querySelectorAll('.item-row');
+            totalForms.value = filas.length;
+            filas.forEach((fila, indice) => {
+                fila.querySelectorAll('[name], [id]').forEach((campo) => {
+                    if (campo.name) campo.name = campo.name.replace(/items-\d+-/, `items-${indice}-`);
+                    if (campo.id) campo.id = campo.id.replace(/items-\d+-/, `items-${indice}-`);
+                });
+            });
+        }
+
+        addButton.addEventListener('click', function () {
+            const filas = container.querySelectorAll('.item-row');
+            const plantilla = filas[filas.length - 1].cloneNode(true);
+            const indice = filas.length;
+            plantilla.querySelectorAll('[name], [id]').forEach((campo) => {
+                if (campo.name) campo.name = campo.name.replace(/items-\d+-/, `items-${indice}-`);
+                if (campo.id) campo.id = campo.id.replace(/items-\d+-/, `items-${indice}-`);
+                if (campo.value && campo.type !== 'hidden') campo.value = '';
+                if (campo.selectedIndex !== undefined) campo.selectedIndex = 0;
+            });
+            plantilla.querySelectorAll('.invalid-feedback').forEach((error) => error.remove());
+            container.appendChild(plantilla);
+            actualizarIndices();
+        });
+
+        container.addEventListener('click', function (event) {
+            if (!event.target.classList.contains('eliminar-item')) return;
+            const filas = container.querySelectorAll('.item-row');
+            if (filas.length === 1) return;
+            event.target.closest('.item-row').remove();
+            actualizarIndices();
+        });
+    });
+</script>
+{% endblock %}

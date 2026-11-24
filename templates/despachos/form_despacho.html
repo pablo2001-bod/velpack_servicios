@@ -5,14 +5,44 @@
     <h2 class="text-primary fw-bold mb-4">{{ titulo }}</h2>
     <form method="POST" id="despacho-form">
         {% csrf_token %}
-        {{ form.as_p }}
+        {{ form.non_field_errors }}
+        <div class="row g-3 mb-3">
+            {% for field in form %}
+                {% if field.name not in campos_guia %}
+                <div class="col-12 col-md-6">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% for error in field.errors %}
+                    <div class="invalid-feedback d-block">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <details class="border rounded p-3 mb-3 bg-light">
+            <summary class="fw-bold text-secondary">Datos de la guía</summary>
+            <div class="row g-3 mt-2">
+                {% for field in form %}
+                    {% if field.name in campos_guia %}
+                    <div class="col-12 col-md-4">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% for error in field.errors %}
+                        <div class="invalid-feedback d-block">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </details>
 
         <!-- Recuadro Punteado para Detalles -->
         <div class="border p-3 mb-3 bg-light rounded" style="border: 2px dashed #ccc !important;">
             <h5 class="mb-3 text-secondary">Distribución de Cubetas </h5>
             
             <!-- Cabeceras de las columnas -->
-            <div class="row fw-bold text-muted mb-2">
+            <div class="row fw-bold text-muted mb-2 formset-header">
                 <div class="col-md-2">Cant. Cubetas</div>
                 <div class="col-md-2">Precio Unit.</div>
                 <div class="col-md-3">Variedad</div>
@@ -29,16 +59,20 @@
                             {{ hidden }}
                         {% endfor %}
                         
-                        <div class="col-md-2">
+                        <div class="col-md-2 campo-movil">
+                            <span class="etiqueta-movil">Cant. Cubetas</span>
                             {{ detalle.cantidad }}
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-2 campo-movil">
+                            <span class="etiqueta-movil">Precio Unit.</span>
                             {{ detalle.precio }}
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 campo-movil">
+                            <span class="etiqueta-movil">Variedad</span>
                             {{ detalle.variedad }}
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 campo-movil">
+                            <span class="etiqueta-movil">Color</span>
                             {{ detalle.color }}
                         </div>
                         <div class="col-md-1 text-center">

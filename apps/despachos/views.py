@@ -16,6 +16,22 @@ DetalleFormSet = inlineformset_factory(
     can_delete=True,
 )
 
+CAMPOS_GUIA = [
+    "ruc_emisor",
+    "direccion_emisor",
+    "ciudad_emisor",
+    "contribuyente",
+    "agente_retencion",
+    "ambiente",
+    "emision",
+    "punto_partida",
+    "estado_transporte",
+    "motivo",
+    "ruta",
+    "correo_empresa",
+    "telefono_empresa",
+]
+
 
 @login_required
 def lista_despacho(request):
@@ -75,6 +91,7 @@ def crear_despacho(request):
             "form": form,
             "detalle_formset": detalle_formset,
             "titulo": "Nueva Guía",
+            "campos_guia": CAMPOS_GUIA,
         },
     )
 
@@ -103,6 +120,7 @@ def editar_despacho(request, id):
             "form": form,
             "detalle_formset": detalle_formset,
             "titulo": "Editar Guía",
+            "campos_guia": CAMPOS_GUIA,
         },
     )
 

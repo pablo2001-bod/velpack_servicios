@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Configuración de Producción - Velpack{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0 fw-bold">Configuración de Producción</h4>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-muted">
+                        El lote se calcula automáticamente con este valor. Al guardar se
+                        recalculan los lotes y los códigos de las pacas existentes.
+                    </p>
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.non_field_errors }}
+                        <div class="mb-3">
+                            {{ form.pacas_por_lote.label_tag }}
+                            {{ form.pacas_por_lote }}
+                            {% for error in form.pacas_por_lote.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="d-flex flex-wrap justify-content-end gap-2">
+                            <a href="{% url 'produccion:registrar' %}" class="btn btn-secondary">Cancelar</a>
+                            <button type="submit" class="btn btn-success px-4">Guardar y recalcular</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

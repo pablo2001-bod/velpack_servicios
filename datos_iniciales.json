@@ -1098,9 +1098,10 @@
     "model": "catalogos.producto",
     "pk": 5,
     "fields": {
-        "nombre": "Cubeta de Segunda",
+        "nombre": "Cubeta Económica",
         "codigo": "S",
-        "activo": true
+        "activo": true,
+        "es_segunda": true
     }
 },
 {
@@ -1350,7 +1351,7 @@
             "producto"
         ],
         "object_id": "5",
-        "object_repr": "Cubeta de Segunda",
+        "object_repr": "Cubeta Económica",
         "action_flag": 1,
         "change_message": "[{\"added\": {}}]"
     }

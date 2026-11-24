@@ -8,9 +8,9 @@
                 <h5 class="mb-0 fw-bold text-dark"><i class="bi bi-truck-flatbed me-2 text-success"></i> Reporte de Despachos</h5>
             </div>
             <!-- Filtro por Fechas -->
-            <form method="get" class="d-flex align-items-center gap-2">
+            <form method="get" class="d-flex align-items-center gap-2 flex-wrap filtro-fechas">
                 <input type="date" name="fecha_inicio" value="{{ fecha_inicio }}" class="form-control form-control-sm">
-                <span>hasta</span>
+                <span class="rango-fechas-label">hasta</span>
                 <input type="date" name="fecha_fin" value="{{ fecha_fin }}" class="form-control form-control-sm">
                 <button type="submit" class="btn btn-success btn-sm">Filtrar</button>
                 <a href="{% url 'reportes:despachos' %}" class="btn btn-outline-secondary btn-sm">Limpiar</a>

@@ -7,30 +7,57 @@ Cronograma de Producción - Velpack
 {% block content %}
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow border-0 p-4 bg-white">
-                <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="col-12 col-xl-10">
+            <div class="card shadow border-0 p-3 p-md-4 bg-white">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
                     <div>
                         <h3 class="fw-bold mb-1 text-success">Cronograma de Producción</h3>
+                        <small class="text-muted">Fecha: {{ fecha_hoy|date:"d/m/Y" }}</small>
                     </div>
+                    {% if es_admin %}
+                    <div class="cronograma-actions">
+                        <a href="{% url 'produccion:modelo_crear' %}" class="btn btn-outline-success">
+                            <i class="bi bi-plus-circle me-1"></i>Agregar modelo
+                        </a>
+                        <a href="{% url 'produccion:color_crear' %}" class="btn btn-outline-primary">
+                            <i class="bi bi-palette me-1"></i>Agregar color
+                        </a>
+                        <a href="{% url 'produccion:agregar_produccion' %}" class="btn btn-success">
+                            <i class="bi bi-box-seam me-1"></i>Agregar producción
+                        </a>
+                        <a href="{% url 'produccion:configuracion' %}" class="btn btn-outline-dark">
+                            <i class="bi bi-gear me-1"></i>Lote: {{ configuracion.pacas_por_lote }}
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
 
-                <!-- IMPORTANTE: method="POST" sin validaciones complejas anteriores -->
                 <form method="POST" autocomplete="off">
                     {% csrf_token %}
-
                     <div class="mb-4">
-                        <label class="form-label fw-bold fs-5 text-dark mb-3">Modelos Disponibles:</label>
+                        <label class="form-label fw-bold fs-5 text-dark mb-3">Modelos disponibles:</label>
                         <div class="row g-3">
                             {% for prod in productos %}
-                                {% if "segunda" not in prod.nombre|lower %}
-                                <div class="col-md-6">
-                                    <div class="p-3 border rounded-3 bg-light shadow-sm d-flex align-items-center justify-content-between">
-                                        <span class="fw-bold fs-5 text-secondary">{{ prod.nombre }}</span>
-                                        <div class="form-check form-switch fs-4">
-                                            <!-- El name debe ser exactamente productos_activos[] -->
-                                            <input class="form-check-input" type="checkbox" name="productos_activos[]" value="{{ prod.id }}" id="prod_{{ prod.id }}" 
-                                                {% if prod.id in productos_seleccionados_ids %}checked{% endif %}>
+                                {% if not prod.es_segunda %}
+                                <div class="col-12 col-md-6">
+                                    <div class="p-3 border rounded-3 bg-light shadow-sm d-flex align-items-center justify-content-between gap-2">
+                                        <span class="fw-bold fs-6 text-secondary">
+                                            {{ prod.nombre }}
+                                            {% if not prod.activo %}<small class="text-danger">(inactivo)</small>{% endif %}
+                                        </span>
+                                        <div class="d-flex align-items-center gap-2 flex-nowrap">
+                                            {% if es_admin %}
+                                            <a href="{% url 'produccion:modelo_editar' prod.id %}" class="btn btn-sm btn-outline-primary" title="Editar modelo">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'produccion:modelo_eliminar' prod.id %}" class="btn btn-sm btn-outline-danger" title="Eliminar modelo" onclick="return confirm('¿Eliminar el modelo {{ prod.nombre }}?');">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                            {% endif %}
+                                            <div class="form-check form-switch fs-4 m-0">
+                                                <input class="form-check-input" type="checkbox" name="productos_activos[]" value="{{ prod.id }}" id="prod_{{ prod.id }}"
+                                                    {% if prod.id in productos_seleccionados_ids %}checked{% endif %}>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -39,11 +66,63 @@ Cronograma de Producción - Velpack
                         </div>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2 border-top pt-4">
+                    <div class="d-flex flex-wrap justify-content-end gap-2 border-top pt-4">
                         <a href="{% url 'produccion:lista' %}" class="btn btn-secondary px-4 fw-bold">Cancelar</a>
-                        <button type="submit" class="btn btn-success px-5 fw-bold fs-5">Guardar Cronograma</button>
+                        {% if es_admin %}
+                        <button type="submit" class="btn btn-success px-4 fw-bold">Guardar Cronograma</button>
+                        {% endif %}
                     </div>
                 </form>
+
+                {% if es_admin %}
+                <div class="border-top mt-4 pt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">Colores</h5>
+                        <a href="{% url 'produccion:color_crear' %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-plus-circle me-1"></i>Nuevo color
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Color</th>
+                                    <th>Código</th>
+                                    <th>Estado</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for color in colores %}
+                                <tr>
+                                    <td class="fw-bold">{{ color.nombre }}</td>
+                                    <td>{{ color.codigo }}</td>
+                                    <td>
+                                        {% if color.activo %}
+                                        <span class="badge bg-success-subtle text-success">Activo</span>
+                                        {% else %}
+                                        <span class="badge bg-danger-subtle text-danger">Inactivo</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="{% url 'produccion:color_editar' color.id %}" class="btn btn-sm btn-outline-primary" title="Editar color">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a href="{% url 'produccion:color_eliminar' color.id %}" class="btn btn-sm btn-outline-danger" title="Eliminar color" onclick="return confirm('¿Eliminar el color {{ color.nombre }}?');">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4" class="text-center text-muted py-3">No hay colores registrados.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
