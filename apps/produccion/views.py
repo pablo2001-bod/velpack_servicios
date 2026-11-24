@@ -5,6 +5,7 @@ from django.db.models.deletion import ProtectedError
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 from django.utils import timezone
 
 from apps.catalogos.models import Color, Producto
@@ -26,8 +27,8 @@ from .models import (
 )
 from .pdf import generar_archivo_pdf
 from .services import (
-    obtener_turno_actual,
     registrar_pacas,
+    turno_en_curso,
 )
 
 
@@ -134,6 +135,7 @@ def editar_modelo(request, pk):
 
 
 @_solo_admin
+@require_POST
 def eliminar_modelo(request, pk):
     modelo = get_object_or_404(Producto, pk=pk)
     try:
@@ -186,6 +188,7 @@ def editar_color(request, pk):
 
 
 @_solo_admin
+@require_POST
 def eliminar_color(request, pk):
     color = get_object_or_404(Color, pk=pk)
     try:
@@ -229,7 +232,7 @@ def registrar_produccion_admin(request):
         form = RegistroProduccionForm(request.POST)
         items = ItemsProduccionFormSet(request.POST, prefix="items")
         if form.is_valid() and items.is_valid():
-            turno = obtener_turno_actual()
+            turno = turno_en_curso()
             if not turno:
                 messages.error(request, "No hay un turno activo configurado.")
             else:

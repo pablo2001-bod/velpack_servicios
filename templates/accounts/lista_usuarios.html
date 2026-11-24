@@ -68,10 +68,10 @@ Lista de Usuarios y Operadores - Velpack
                                                 <a href="{% url 'editar_operador' op.id %}" class="btn btn-sm btn-outline-primary" title="Editar Operador">
                                                     Editar
                                                 </a>
-                                                <!-- Enlace real para eliminar operador -->
-                                                <a href="{% url 'eliminar_operador' op.id %}" class="btn btn-sm btn-outline-danger" title="Eliminar Operador" onclick="return confirm('¿Estás seguro de que deseas eliminar al operador {{ op.nombre_completo }}?');">
-                                                    Eliminar
-                                                </a>
+                                                <form method="post" action="{% url 'eliminar_operador' op.id %}" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar al operador {{ op.nombre_completo }}?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar Operador">Eliminar</button>
+                                                </form>
                                             </div>
                                         </td>
                                     {% endif %}
@@ -135,10 +135,10 @@ Lista de Usuarios y Operadores - Velpack
                                                     Editar
                                                 </a>
                                                 {% if usuario.id != user.id %}
-                                                    <!-- Enlace real para eliminar usuario -->
-                                                    <a href="{% url 'eliminar_usuario' usuario.id %}" class="btn btn-sm btn-outline-danger" title="Eliminar Usuario" onclick="return confirm('¿Estás seguro de que deseas eliminar el usuario {{ usuario.username }}?');">
-                                                        Eliminar
-                                                    </a>
+                                                    <form method="post" action="{% url 'eliminar_usuario' usuario.id %}" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar el usuario {{ usuario.username }}?');">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar Usuario">Eliminar</button>
+                                                    </form>
                                                 {% else %}
                                                     <button class="btn btn-sm btn-outline-secondary" disabled title="No puedes eliminarte a ti mismo">
                                                         <i class="bi bi-lock-fill"></i>
@@ -198,9 +198,10 @@ Lista de Usuarios y Operadores - Velpack
                                                 <a href="{% url 'editar_turno' turno.id %}" class="btn btn-sm btn-outline-primary" title="Editar turno">
                                                     Editar
                                                 </a>
-                                                <a href="{% url 'eliminar_turno' turno.id %}" class="btn btn-sm btn-outline-danger" title="Eliminar turno" onclick="return confirm('¿Eliminar el turno {{ turno.nombre }}?');">
-                                                    Eliminar
-                                                </a>
+                                                <form method="post" action="{% url 'eliminar_turno' turno.id %}" class="d-inline" onsubmit="return confirm('¿Eliminar el turno {{ turno.nombre }}?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar turno">Eliminar</button>
+                                                </form>
                                             </div>
                                         </td>
                                     </tr>

@@ -64,10 +64,28 @@ class TerminalOperadorTests(TestCase):
         session["color_id"] = self.color.id
         session.save()
 
-        response = self.client.get(reverse("operadores:logout_operador"))
+        response = self.client.post(reverse("operadores:logout_operador"))
 
         self.assertRedirects(response, reverse("operadores:terminal_operador"))
         self.assertIn("operador_id", self.client.session)
+
+    def test_ids_invalidos_no_generan_error(self):
+        session = self.client.session
+        session["operador_id"] = self.operador.id
+        session["color_id"] = self.color.id
+        session.save()
+
+        response = self.client.post(
+            reverse("operadores:terminal_operador"),
+            {"accion": "configurar_color", "color_id": "abc"},
+        )
+        self.assertRedirects(response, reverse("operadores:terminal_operador"))
+
+        response = self.client.post(
+            reverse("operadores:terminal_operador"),
+            {"producto_id": "abc", "cantidad_pacas": "1"},
+        )
+        self.assertRedirects(response, reverse("operadores:terminal_operador"))
 
     def test_operador_envia_observacion_al_administrador(self):
         session = self.client.session

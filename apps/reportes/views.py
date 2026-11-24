@@ -1,4 +1,5 @@
 import openpyxl
+from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib.auth.decorators import user_passes_test
 from django.db.models import Q, Sum
@@ -28,6 +29,12 @@ def _obtener_fechas_filtro(request):
 
     inicio = parse_date(fecha_inicio) if fecha_inicio else None
     fin = parse_date(fecha_fin) if fecha_fin else None
+
+    if fecha_inicio and inicio is None:
+        messages.error(request, "La fecha 'desde' no tiene un formato válido.")
+    if fecha_fin and fin is None:
+        messages.error(request, "La fecha 'hasta' no tiene un formato válido.")
+
     return inicio, fin
 
 
@@ -136,7 +143,7 @@ def exportar_materia_prima_excel(request):
     ws.title = "Ingresos Materia Prima"
     ws.append(['ID', 'Fecha', 'Proveedor', 'RUC', 'Tipo de Material', 'Cantidad / Unidades', 'Peso Neto (Kg)', 'Observación'])
     for item in ingresos.order_by('-id'):
-        ws.append([item.id, str(item.fecha), item.proveedor.nombre, item.proveedor.ruc, item.get_tipo_material_display(), float(item.cantidad), float(item.peso_neto), item.observacion])
+        ws.append([item.id, str(item.fecha), item.proveedor.nombre, item.proveedor.ruc, item.get_tipo_material_display(), float(item.cantidad or 0), float(item.peso_neto or 0), item.observacion])
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename=reporte_materia_prima.xlsx'
     wb.save(response)

@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from apps.accounts.models import AvisoInterno
 from apps.catalogos.models import Color, Producto
@@ -175,7 +176,10 @@ def terminal_operador(request):
         accion = request.POST.get("accion", "registrar")
 
         if accion == "configurar_color":
-            color_id = request.POST.get("color_id")
+            try:
+                color_id = int(request.POST.get("color_id", ""))
+            except (TypeError, ValueError):
+                color_id = None
             if color_id and Color.objects.filter(id=color_id, activo=True).exists():
                 request.session["color_id"] = color_id
                 messages.success(request, "Color de trabajo configurado correctamente.")
@@ -214,7 +218,10 @@ def terminal_operador(request):
             messages.success(request, "Observación enviada al administrador.")
             return redirect("operadores:terminal_operador")
 
-        color_id = request.session.get("color_id")
+        try:
+            color_id = int(request.session.get("color_id", ""))
+        except (TypeError, ValueError):
+            color_id = None
         if not color_id:
             messages.error(request, "Por favor seleccione el color de trabajo.")
             return redirect("operadores:terminal_operador")
@@ -223,7 +230,10 @@ def terminal_operador(request):
             messages.error(request, "No hay un turno activo configurado.")
             return redirect("operadores:terminal_operador")
 
-        producto_id = request.POST.get("producto_id")
+        try:
+            producto_id = int(request.POST.get("producto_id", ""))
+        except (TypeError, ValueError):
+            producto_id = None
         try:
             cantidad = int(request.POST.get("cantidad_pacas", "1"))
         except (TypeError, ValueError):
@@ -369,6 +379,7 @@ def etiquetas_operador(request):
     )
 
 
+@require_POST
 def logout_operador(request):
     limite = _limite_de_sesion(request)
     turno = _turno_de_sesion(request)

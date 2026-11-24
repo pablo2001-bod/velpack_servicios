@@ -3,7 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import AvisoInterno, PerfilUsuario
-from apps.produccion.models import Turno
+from apps.produccion.models import Operador, Turno
 
 
 class PerfilUsuarioTests(TestCase):
@@ -51,7 +51,7 @@ class SeguridadYAvisosTests(TestCase):
         response = self.client.post(
             reverse("registrar_usuario"),
             {
-                "rol": "usuario",
+                "rol": "usuario_normal",
                 "username": "nuevo",
                 "email": "nuevo@example.com",
                 "password": "ClaveSegura123!",
@@ -60,6 +60,7 @@ class SeguridadYAvisosTests(TestCase):
 
         self.assertRedirects(response, reverse("lista_usuarios"))
         self.assertTrue(User.objects.filter(username="nuevo").exists())
+        self.assertTrue(User.objects.get(username="nuevo").is_staff)
 
     def test_ingreso_genera_aviso_interno(self):
         self.client.logout()
@@ -112,3 +113,92 @@ class TurnosAdminTests(TestCase):
         response = self.client.get(reverse("crear_turno"))
 
         self.assertEqual(response.status_code, 302)
+
+
+class ValidacionesYSeguridadTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            username="admin", email="admin@example.com", password="ClaveAdmin123!"
+        )
+        self.client.force_login(self.admin)
+
+    def test_registro_no_repite_mensajes_de_clave(self):
+        response = self.client.post(
+            reverse("registrar_usuario"),
+            {
+                "rol": "usuario_normal",
+                "username": "nuevo",
+                "email": "nuevo@example.com",
+                "password": "nuevo123",
+            },
+            follow=True,
+        )
+        contenido = response.content.decode()
+
+        self.assertEqual(
+            contenido.count("La contraseña es demasiado similar a la de nombre de usuario."),
+            1,
+        )
+        self.assertEqual(
+            contenido.count(
+                "La contraseña es demasiado corta. Debe contener por lo menos 10 caracteres."
+            ),
+            1,
+        )
+        self.assertContains(response, "Mínimo 10 caracteres")
+
+    def test_registro_rechaza_rol_invalido(self):
+        response = self.client.post(
+            reverse("registrar_usuario"),
+            {
+                "rol": "invalido",
+                "username": "nuevo",
+                "email": "nuevo@example.com",
+                "password": "ClaveSegura123!",
+            },
+        )
+
+        self.assertRedirects(response, reverse("registrar_usuario"))
+        self.assertFalse(User.objects.filter(username="nuevo").exists())
+
+    def test_get_no_realiza_acciones_de_cambio(self):
+        otro_usuario = User.objects.create_user(
+            username="otro", password="ClaveSegura123!"
+        )
+        operador = Operador.objects.create(
+            nombre_completo="Operador Prueba", cedula="0999999999"
+        )
+        turno = Turno.objects.create(
+            nombre="Prueba", hora_inicio="00:00", hora_fin="23:59"
+        )
+        aviso = AvisoInterno.objects.create(
+            tipo="ingreso_usuario", titulo="Aviso", mensaje="Mensaje"
+        )
+
+        urls = [
+            reverse("eliminar_operador", args=[operador.id]),
+            reverse("eliminar_usuario", args=[otro_usuario.id]),
+            reverse("eliminar_turno", args=[turno.id]),
+            reverse("marcar_aviso_leido", args=[aviso.id]),
+        ]
+        for url in urls:
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 405)
+
+        aviso.refresh_from_db()
+        self.assertFalse(aviso.leido)
+
+    def test_no_puede_quitar_permisos_al_ultimo_admin(self):
+        response = self.client.post(
+            reverse("editar_usuario", args=[self.admin.id]),
+            {
+                "username": "admin",
+                "email": "admin@example.com",
+                "rol": "usuario_normal",
+                "activo": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("editar_usuario", args=[self.admin.id]))
+        self.admin.refresh_from_db()
+        self.assertTrue(self.admin.is_superuser)

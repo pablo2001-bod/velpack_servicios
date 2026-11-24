@@ -176,7 +176,7 @@ class SmokeTests(TestCase):
             reverse("reportes:reporte_usuarios"),
             reverse("lista_usuarios"),
             reverse("registrar_usuario"),
-            reverse("editar_usuario", args=[PerfilUsuario.objects.get(usuario=self.user).id]),
+            reverse("editar_usuario", args=[self.user.id]),
         ]
         for url in urls:
             with self.subTest(url=url):
@@ -394,7 +394,7 @@ class SmokeTests(TestCase):
         response = self.client.post(
             reverse("registrar_usuario"),
             {
-                "rol": "usuario",
+                "rol": "usuario_normal",
                 "username": "usuario_nuevo",
                 "password": "ClaveSegura123!",
                 "email": "usuario@example.com",
@@ -412,7 +412,7 @@ class SmokeTests(TestCase):
                 "email": "usuario2@example.com",
                 "first_name": "Usuario",
                 "last_name": "Editado",
-                "rol": "usuario",
+                "rol": "usuario_normal",
                 "activo": "on",
             },
         )

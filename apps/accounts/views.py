@@ -6,11 +6,20 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from apps.produccion.models import Operador, Turno
 
 from .forms import TurnoForm
-from .models import AvisoInterno, PerfilUsuario
+from .models import AvisoInterno, PerfilUsuario, Rol
+
+
+ROLES_USUARIO = {"operador", "usuario_normal", "superusuario"}
+NOMBRES_ROL = {
+    "operador": "Operador",
+    "usuario_normal": "Usuario",
+    "superusuario": "Administrador",
+}
 
 
 def _solo_superusuario(view):
@@ -28,6 +37,15 @@ def _clave_valida(request, password, username=""):
     return True
 
 
+def _asignar_rol_perfil(usuario, rol):
+    perfil = PerfilUsuario.obtener_o_crear_para(usuario)
+    nombre = NOMBRES_ROL[rol]
+    perfil.rol, _ = Rol.objects.get_or_create(nombre=nombre)
+    perfil.cargo = nombre
+    perfil.save(update_fields=["rol", "cargo"])
+    return perfil
+
+
 # ==========================================================
 # REGISTRO Y LISTADO PRINCIPAL
 # ==========================================================
@@ -37,6 +55,10 @@ def _clave_valida(request, password, username=""):
 def registrar_usuario(request):
     if request.method == "POST":
         rol = request.POST.get("rol")
+
+        if rol not in ROLES_USUARIO:
+            messages.error(request, "Seleccione un rol válido.")
+            return redirect("registrar_usuario")
 
         if rol == "operador":
             nombre = request.POST.get("first_name", "").strip()
@@ -89,9 +111,9 @@ def registrar_usuario(request):
                 first_name=first_name,
                 last_name=last_name,
                 is_superuser=es_superusuario,
-                is_staff=es_superusuario,
+                is_staff=True,
             )
-            PerfilUsuario.obtener_o_crear_para(usuario)
+            _asignar_rol_perfil(usuario, rol)
 
         messages.success(
             request,
@@ -166,6 +188,7 @@ def editar_operador(request, pk):
 
 
 @_solo_superusuario
+@require_POST
 def eliminar_operador(request, pk):
     operador = get_object_or_404(Operador, pk=pk)
     nombre_completo = operador.nombre_completo
@@ -202,6 +225,12 @@ def editar_usuario(request, pk):
         password = request.POST.get("password", "")
         activo = request.POST.get("activo") == "on"
 
+        if rol == "usuario":
+            rol = "usuario_normal"
+        if rol not in {"usuario_normal", "superusuario"}:
+            messages.error(request, "Seleccione un rol válido.")
+            return redirect("editar_usuario", pk=pk)
+
         if not username:
             messages.error(request, "El nombre de usuario es obligatorio.")
             return redirect("editar_usuario", pk=pk)
@@ -214,12 +243,27 @@ def editar_usuario(request, pk):
             return redirect("editar_usuario", pk=pk)
 
         es_superusuario = rol == "superusuario"
+        if (
+            usuario_edit.is_superuser
+            and usuario_edit.is_active
+            and (not es_superusuario or not activo)
+        ):
+            otros_superusuarios = User.objects.filter(
+                is_superuser=True, is_active=True
+            ).exclude(pk=pk).count()
+            if otros_superusuarios == 0:
+                messages.error(
+                    request,
+                    "No se puede desactivar ni quitar permisos al último administrador activo.",
+                )
+                return redirect("editar_usuario", pk=pk)
+
         usuario_edit.username = username
         usuario_edit.email = email
         usuario_edit.first_name = first_name
         usuario_edit.last_name = last_name
         usuario_edit.is_superuser = es_superusuario
-        usuario_edit.is_staff = es_superusuario
+        usuario_edit.is_staff = True
         usuario_edit.is_active = activo
 
         if password:
@@ -228,7 +272,7 @@ def editar_usuario(request, pk):
             usuario_edit.set_password(password)
 
         usuario_edit.save()
-        PerfilUsuario.obtener_o_crear_para(usuario_edit)
+        _asignar_rol_perfil(usuario_edit, rol)
 
         messages.success(
             request,
@@ -244,6 +288,7 @@ def editar_usuario(request, pk):
 
 
 @_solo_superusuario
+@require_POST
 def eliminar_usuario(request, pk):
     usuario = get_object_or_404(User, pk=pk)
 
@@ -253,6 +298,17 @@ def eliminar_usuario(request, pk):
             "¡Acción denegada! No puedes eliminar tu propia cuenta en sesión.",
         )
         return redirect("lista_usuarios")
+
+    if usuario.is_superuser and usuario.is_active:
+        superusuarios_activos = User.objects.filter(
+            is_superuser=True, is_active=True
+        ).count()
+        if superusuarios_activos <= 1:
+            messages.error(
+                request,
+                "No se puede eliminar el último administrador activo del sistema.",
+            )
+            return redirect("lista_usuarios")
 
     username = usuario.username
     usuario.delete()
@@ -303,6 +359,7 @@ def editar_turno(request, pk):
 
 
 @_solo_superusuario
+@require_POST
 def eliminar_turno(request, pk):
     turno = get_object_or_404(Turno, pk=pk)
     try:
@@ -331,17 +388,17 @@ def lista_avisos(request):
 
 
 @_solo_superusuario
+@require_POST
 def marcar_aviso_leido(request, pk):
-    if request.method == "POST":
-        aviso = get_object_or_404(AvisoInterno, pk=pk)
-        aviso.leido = True
-        aviso.save(update_fields=["leido"])
+    aviso = get_object_or_404(AvisoInterno, pk=pk)
+    aviso.leido = True
+    aviso.save(update_fields=["leido"])
     return redirect("lista_avisos")
 
 
 @_solo_superusuario
+@require_POST
 def marcar_todos_leidos(request):
-    if request.method == "POST":
-        AvisoInterno.objects.filter(leido=False).update(leido=True)
-        messages.success(request, "Avisos marcados como leídos.")
+    AvisoInterno.objects.filter(leido=False).update(leido=True)
+    messages.success(request, "Avisos marcados como leídos.")
     return redirect("lista_avisos")

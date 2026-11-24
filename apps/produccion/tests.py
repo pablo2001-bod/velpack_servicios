@@ -193,3 +193,22 @@ class CronogramaAdminTests(TestCase):
         response = self.client.get(reverse("produccion:modelo_crear"))
 
         self.assertEqual(response.status_code, 302)
+
+    def test_get_no_elimina_modelos_ni_colores(self):
+        producto = Producto.objects.create(nombre="Modelo Prueba", codigo="M")
+        color = Color.objects.create(nombre="Color Prueba", codigo="C")
+
+        self.assertEqual(
+            self.client.get(
+                reverse("produccion:modelo_eliminar", args=[producto.id])
+            ).status_code,
+            405,
+        )
+        self.assertEqual(
+            self.client.get(
+                reverse("produccion:color_eliminar", args=[color.id])
+            ).status_code,
+            405,
+        )
+        self.assertTrue(Producto.objects.filter(pk=producto.id).exists())
+        self.assertTrue(Color.objects.filter(pk=color.id).exists())

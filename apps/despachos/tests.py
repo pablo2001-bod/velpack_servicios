@@ -70,3 +70,24 @@ class GuiaDespachoEditableTests(TestCase):
         detalle = self.client.get(reverse("despachos:ver", args=[despacho.id]))
         self.assertContains(detalle, "0999999999002")
         self.assertContains(detalle, "QUITO - SALCEDO")
+
+    def test_crear_despacho_requiere_al_menos_un_detalle(self):
+        response = self.client.post(
+            reverse("despachos:crear"),
+            {
+                "cliente": self.cliente_web.id,
+                "transporte": self.transporte.id,
+                "numero_guia": "GUIA-SIN-DETALLE",
+                "fecha": timezone.localdate().isoformat(),
+                "direccion_entrega": "Salcedo",
+                "estado": "PENDIENTE",
+                "detalles-TOTAL_FORMS": "1",
+                "detalles-INITIAL_FORMS": "0",
+                "detalles-MIN_NUM_FORMS": "0",
+                "detalles-MAX_NUM_FORMS": "1000",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Debe agregar al menos un detalle a la guía.")
+        self.assertFalse(Despacho.objects.filter(numero_guia="GUIA-SIN-DETALLE").exists())

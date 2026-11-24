@@ -341,9 +341,12 @@
             </button>
             {% endif %}
             {% if puede_cerrar_sesion %}
-            <a href="{% url 'operadores:logout_operador' %}" class="btn-terminal btn-outline-light">
-                <i class="bi bi-box-arrow-right"></i> Salir
-            </a>
+            <form id="formLogoutOperador" method="post" action="{% url 'operadores:logout_operador' %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn-terminal btn-outline-light">
+                    <i class="bi bi-box-arrow-right"></i> Salir
+                </button>
+            </form>
             {% else %}
             <button type="button" class="btn-terminal btn-outline-light" disabled
                     title="Disponible cuando termine el turno {{ turno_en_curso.nombre }} ({{ turno_en_curso.hora_fin|time:'H:i' }})">
@@ -529,7 +532,7 @@
                     <div class="row g-2 mb-3">
                         <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="10">10</button></div>
                         <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="20">20</button></div>
-                        <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="{{ pacas_por_lote }}">50</button></div>
+                        <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="{{ pacas_por_lote }}">{{ pacas_por_lote }}</button></div>
                         <div class="col-3"><button type="button" class="btn btn-outline-success qty-btn w-100 btn-set-qty" data-qty="100">100</button></div>
                     </div>
 
@@ -716,7 +719,10 @@ document.addEventListener("DOMContentLoaded", function () {
     const cierreAutomaticoEn = Number("{{ cierre_automatico_en|default:0 }}") || 0;
     if (cierreAutomaticoEn > 0) {
         setTimeout(function () {
-            window.location.href = "{% url 'operadores:logout_operador' %}";
+            const formLogout = document.getElementById("formLogoutOperador");
+            if (formLogout) {
+                formLogout.submit();
+            }
         }, cierreAutomaticoEn * 1000);
     }
 

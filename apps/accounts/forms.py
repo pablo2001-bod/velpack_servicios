@@ -22,6 +22,9 @@ class TurnoForm(forms.ModelForm):
             self.add_error("hora_fin", "La hora de fin debe ser distinta de la de inicio.")
             return datos
 
+        if not datos.get("activo", self.instance.activo):
+            return datos
+
         for otro in Turno.objects.filter(activo=True).exclude(pk=self.instance.pk):
             if self._solapa(inicio, fin, otro.hora_inicio, otro.hora_fin):
                 self.add_error(

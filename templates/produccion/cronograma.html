@@ -50,9 +50,9 @@ Cronograma de Producción - Velpack
                                             <a href="{% url 'produccion:modelo_editar' prod.id %}" class="btn btn-sm btn-outline-primary" title="Editar modelo">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="{% url 'produccion:modelo_eliminar' prod.id %}" class="btn btn-sm btn-outline-danger" title="Eliminar modelo" onclick="return confirm('¿Eliminar el modelo {{ prod.nombre }}?');">
+                                            <button type="submit" formaction="{% url 'produccion:modelo_eliminar' prod.id %}" formmethod="post" class="btn btn-sm btn-outline-danger" title="Eliminar modelo" onclick="return confirm('¿Eliminar el modelo {{ prod.nombre }}?');">
                                                 <i class="bi bi-trash"></i>
-                                            </a>
+                                            </button>
                                             {% endif %}
                                             <div class="form-check form-switch fs-4 m-0">
                                                 <input class="form-check-input" type="checkbox" name="productos_activos[]" value="{{ prod.id }}" id="prod_{{ prod.id }}"
@@ -109,9 +109,9 @@ Cronograma de Producción - Velpack
                                             <a href="{% url 'produccion:color_editar' color.id %}" class="btn btn-sm btn-outline-primary" title="Editar color">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="{% url 'produccion:color_eliminar' color.id %}" class="btn btn-sm btn-outline-danger" title="Eliminar color" onclick="return confirm('¿Eliminar el color {{ color.nombre }}?');">
+                                            <button type="submit" formaction="{% url 'produccion:color_eliminar' color.id %}" formmethod="post" class="btn btn-sm btn-outline-danger" title="Eliminar color" onclick="return confirm('¿Eliminar el color {{ color.nombre }}?');">
                                                 <i class="bi bi-trash"></i>
-                                            </a>
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

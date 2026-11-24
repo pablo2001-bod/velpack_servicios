@@ -15,15 +15,6 @@ Registrar Usuario - Velpack
         </a>
     </div>
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endfor %}
-    {% endif %}
-
     <div class="box shadow-sm rounded bg-white p-4">
         <form method="POST" autocomplete="off">
             {% csrf_token %}
@@ -74,13 +65,13 @@ Registrar Usuario - Velpack
                 <div class="col-md-6 campo-cuenta" style="display: none;">
                     <label class="form-label fw-bold">Contraseña</label>
                     <div class="input-group">
-                        <input type="password" name="password" id="input_password" class="form-control" placeholder="Mínimo 8 caracteres">
+                        <input type="password" name="password" id="input_password" class="form-control" placeholder="Mínimo 10 caracteres">
                         <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                             <i class="bi bi-eye" id="eyeIcon"></i>
                         </button>
                     </div>
                     <div class="form-text text-muted small mt-1">
-                        Debe incluir al menos 8 caracteres, una MAYÚSCULA, un NÚMERO y un carácter ESPECIAL (ej: . - _ @ $).
+                        Debe incluir al menos 10 caracteres, una MAYÚSCULA, una minúscula, un NÚMERO y un carácter ESPECIAL (ej: . - _ @ $).
                     </div>
                 </div>
             </div>

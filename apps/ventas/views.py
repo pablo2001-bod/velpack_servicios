@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from apps.accounts.models import PerfilUsuario
 from apps.catalogos.models import Color, Producto
@@ -29,6 +30,16 @@ def lista_ventas(request):
     return render(request, "ventas/lista_ventas.html", {"ventas": ventas, "query": query})
 
 
+def _opciones_pago(request):
+    metodo = request.POST.get("metodo_pago", "efectivo")
+    estado = request.POST.get("estado_pago", "pagado")
+    if metodo not in dict(Venta.METODO_PAGO_CHOICES) or estado not in dict(
+        Venta.ESTADO_PAGO_CHOICES
+    ):
+        raise ValueError("El método o estado de pago seleccionado no es válido.")
+    return metodo, estado
+
+
 def _obtener_filas_detalle(request):
     """Extrae y valida las filas de detalle enviadas por el formulario."""
     modelos = request.POST.getlist("modelo[]")
@@ -48,17 +59,25 @@ def _obtener_filas_detalle(request):
             continue
 
         try:
+            modelo = Producto.objects.get(pk=modelo_id, activo=True)
+            color = Color.objects.get(pk=color_id, activo=True)
             cantidad = int(cantidad_raw)
             precio = Decimal(str(precio_raw))
-        except (TypeError, ValueError, InvalidOperation):
-            raise ValueError("Hay cantidades o precios con un formato inválido.")
+        except (
+            Producto.DoesNotExist,
+            Color.DoesNotExist,
+            TypeError,
+            ValueError,
+            InvalidOperation,
+        ):
+            raise ValueError("Hay modelos, colores, cantidades o precios no válidos.")
 
         if cantidad <= 0:
             raise ValueError("La cantidad de pacas debe ser mayor a cero.")
         if precio < 0:
             raise ValueError("El precio unitario no puede ser negativo.")
 
-        filas.append((modelo_id, color_id, cantidad, precio))
+        filas.append((modelo.id, color.id, cantidad, precio))
 
     return filas
 
@@ -70,6 +89,7 @@ def crear_venta(request):
     if request.method == "POST":
         try:
             filas = _obtener_filas_detalle(request)
+            metodo_pago, estado_pago = _opciones_pago(request)
         except ValueError as error:
             messages.error(request, str(error))
             return redirect("ventas:crear_venta")
@@ -86,8 +106,8 @@ def crear_venta(request):
             with transaction.atomic():
                 venta = form.save(commit=False)
                 venta.usuario = PerfilUsuario.obtener_o_crear_para(request.user)
-                venta.metodo_pago = request.POST.get("metodo_pago", "efectivo")
-                venta.estado_pago = request.POST.get("estado_pago", "pagado")
+                venta.metodo_pago = metodo_pago
+                venta.estado_pago = estado_pago
                 venta.observacion = request.POST.get("observacion", "").strip()
                 venta.save()
 
@@ -122,6 +142,7 @@ def crear_venta(request):
 
 
 @staff_member_required
+@require_POST
 def actualizar_estado_pago(request, pk):
     """Vista para actualizar el método y estado de pago desde la lista de ventas."""
     venta = get_object_or_404(Venta, pk=pk)
@@ -133,12 +154,17 @@ def actualizar_estado_pago(request, pk):
         )
         return redirect("ventas:lista_ventas")
 
-    if request.method == "POST":
-        venta.metodo_pago = request.POST.get("metodo_pago", venta.metodo_pago)
-        venta.estado_pago = request.POST.get("estado_pago", venta.estado_pago)
-        venta.save(update_fields=["metodo_pago", "estado_pago"])
-        messages.success(
-            request,
-            f"Se actualizó el estado de la factura #{venta.numero_factura} correctamente.",
-        )
+    try:
+        metodo_pago, estado_pago = _opciones_pago(request)
+    except ValueError as error:
+        messages.error(request, str(error))
+        return redirect("ventas:lista_ventas")
+
+    venta.metodo_pago = metodo_pago
+    venta.estado_pago = estado_pago
+    venta.save(update_fields=["metodo_pago", "estado_pago"])
+    messages.success(
+        request,
+        f"Se actualizó el estado de la factura #{venta.numero_factura} correctamente.",
+    )
     return redirect("ventas:lista_ventas")

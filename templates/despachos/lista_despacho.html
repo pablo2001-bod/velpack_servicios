@@ -58,7 +58,10 @@
                             </td>
                             <td class="text-center">
                                 <a href="{% url 'despachos:editar' d.id %}" class="btn btn-sm btn-outline-warning" title="Aplazar / Editar"><i class="bi bi-pencil-square"></i> Aplazar</a>
-                                <a href="{% url 'despachos:entregar' d.id %}" class="btn btn-sm btn-outline-success" title="Marcar Entregado"><i class="bi bi-check-circle"></i> Entregar</a>
+                                <form method="post" action="{% url 'despachos:entregar' d.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Marcar Entregado"><i class="bi bi-check-circle"></i> Entregar</button>
+                                </form>
                                 <a href="{% url 'despachos:ver' d.id %}" class="btn btn-sm btn-outline-info" title="Imprimir / Ver"><i class="bi bi-printer"></i> Imprimir</a>                            </td>
                         </tr>
                         {% empty %}

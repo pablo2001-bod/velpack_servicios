@@ -1,19 +1,33 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db.models import Q
-from django.forms import inlineformset_factory
+from django.forms import BaseInlineFormSet, inlineformset_factory
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from .forms import DespachoForm
 from .models import Despacho, DetalleDespacho
 
-# Definimos el formset vinculando el modelo principal y el detalle
+class BaseDetalleFormSet(BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        if any(self.errors):
+            return
+        if not any(
+            form.cleaned_data and not form.cleaned_data.get("DELETE")
+            for form in self.forms
+        ):
+            raise ValidationError("Debe agregar al menos un detalle a la guía.")
+
+
 DetalleFormSet = inlineformset_factory(
     Despacho,
     DetalleDespacho,
     fields=("cantidad", "precio", "variedad", "color"),
     extra=1,
     can_delete=True,
+    formset=BaseDetalleFormSet,
 )
 
 CAMPOS_GUIA = [
@@ -59,6 +73,7 @@ def lista_despacho(request):
 
 
 @login_required
+@require_POST
 def marcar_entregado(request, id):
     despacho = get_object_or_404(Despacho, id=id)
     despacho.estado = "ENTREGADO"
