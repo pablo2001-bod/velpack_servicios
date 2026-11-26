@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.views.decorators.cache import never_cache
 from django.db import transaction
 from django.db.models.deletion import ProtectedError
 from django.http import FileResponse
@@ -9,6 +10,8 @@ from django.views.decorators.http import require_POST
 from django.utils import timezone
 
 from apps.catalogos.models import Color, Producto
+from apps.despachos.models import DetalleDespacho
+from apps.ventas.models import DetalleVenta
 
 from .forms import (
     ColorForm,
@@ -23,6 +26,7 @@ from .models import (
     ArchivoEtiquetas,
     ConfiguracionProduccion,
     CronogramaDiario,
+    DetalleProduccion,
     Paca,
     ParametroProduccion,
     Produccion,
@@ -40,13 +44,18 @@ def lista_produccion(request):
     producciones = Produccion.objects.prefetch_related(
         "detalles__producto", "detalles__color"
     ).all()
-    return render(request, "produccion/lista.html", {"producciones": producciones})
+    return render(
+        request,
+        "produccion/lista.html",
+        {"producciones": producciones, "es_admin": request.user.is_superuser},
+    )
 
 
 def _solo_admin(view):
     return user_passes_test(lambda u: u.is_superuser)(view)
 
 
+@never_cache
 @login_required(login_url="/login/")
 def gestionar_cronograma(request):
     """Vista para seleccionar los modelos activos del día y gestionar catálogos."""
@@ -194,17 +203,26 @@ def editar_color(request, pk):
 @require_POST
 def eliminar_color(request, pk):
     color = get_object_or_404(Color, pk=pk)
-    try:
-        color.delete()
-    except ProtectedError:
-        color.activo = False
-        color.save(update_fields=["activo"])
-        messages.warning(
-            request,
-            "El color tiene producción registrada: se desactivó en lugar de eliminarse.",
-        )
-    else:
-        messages.success(request, "Color eliminado correctamente.")
+    referencias = []
+    if DetalleProduccion.objects.filter(color=color).exists():
+        referencias.append("producción")
+    if DetalleDespacho.objects.filter(color=color).exists():
+        referencias.append("despachos")
+    if DetalleVenta.objects.filter(color=color).exists():
+        referencias.append("ventas")
+
+    with transaction.atomic():
+        ParametroProduccion.objects.filter(color=color).delete()
+        if referencias:
+            color.activo = False
+            color.save(update_fields=["activo"])
+            messages.warning(
+                request,
+                f"El color tiene registros de {', '.join(referencias)}: se desactivó.",
+            )
+        else:
+            color.delete()
+            messages.success(request, "Color eliminado correctamente.")
     return redirect("produccion:registrar")
 
 
@@ -352,6 +370,25 @@ def registrar_produccion_admin(request):
         "produccion/registrar_produccion.html",
         {"form": form, "items": items},
     )
+
+
+@_solo_admin
+@require_POST
+def eliminar_produccion(request, id):
+    produccion = get_object_or_404(Produccion, id=id)
+    produccion.delete()
+    messages.success(request, "Producción eliminada correctamente.")
+    return redirect("produccion:lista")
+
+
+@_solo_admin
+@require_POST
+def eliminar_historial_produccion(request):
+    cantidad = Produccion.objects.count()
+    with transaction.atomic():
+        Produccion.objects.all().delete()
+    messages.success(request, f"Se eliminaron {cantidad} producciones.")
+    return redirect("produccion:lista")
 
 
 @login_required(login_url="/login/")

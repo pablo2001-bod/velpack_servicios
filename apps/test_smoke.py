@@ -145,7 +145,6 @@ class SmokeTests(TestCase):
             reverse("produccion:agregar_produccion"),
             reverse("crear_turno"),
             reverse("editar_turno", args=[self.turno.id]),
-            reverse("lista_avisos"),
             reverse("clientes:lista_clientes"),
             reverse("clientes:crear_cliente"),
             reverse("clientes:editar_cliente", args=[self.cliente.id]),

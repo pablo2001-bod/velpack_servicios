@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from apps.accounts.models import AvisoInterno, PerfilUsuario
+from apps.accounts.models import PerfilUsuario
 from apps.produccion.models import Operador, Turno
 
 
@@ -97,13 +97,6 @@ class SeguridadYAvisosTests(TestCase):
         usuario.refresh_from_db()
         self.assertTrue(usuario.is_staff)
         self.assertFalse(usuario.is_superuser)
-
-    def test_ingreso_genera_aviso_interno(self):
-        self.client.logout()
-        self.client.login(username="admin", password="ClaveAdmin123!")
-
-        self.assertTrue(AvisoInterno.objects.filter(tipo="ingreso_usuario").exists())
-
 
 class TurnosAdminTests(TestCase):
     def setUp(self):
@@ -207,22 +200,15 @@ class ValidacionesYSeguridadTests(TestCase):
         turno = Turno.objects.create(
             nombre="Prueba", hora_inicio="00:00", hora_fin="23:59"
         )
-        aviso = AvisoInterno.objects.create(
-            tipo="ingreso_usuario", titulo="Aviso", mensaje="Mensaje"
-        )
 
         urls = [
             reverse("eliminar_operador", args=[operador.id]),
             reverse("eliminar_usuario", args=[otro_usuario.id]),
             reverse("eliminar_turno", args=[turno.id]),
-            reverse("marcar_aviso_leido", args=[aviso.id]),
         ]
         for url in urls:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 405)
-
-        aviso.refresh_from_db()
-        self.assertFalse(aviso.leido)
 
     def test_no_puede_desactivar_al_ultimo_admin(self):
         response = self.client.post(

@@ -390,3 +390,104 @@ class PermisosAdminProduccionTests(TestCase):
         self.assertFalse(self.model_admin.has_add_permission(self.request))
         self.assertFalse(self.model_admin.has_change_permission(self.request))
         self.assertFalse(self.model_admin.has_delete_permission(self.request))
+
+
+class EliminacionProduccionTests(TestCase):
+    def setUp(self):
+        self.admin = User.objects.create_superuser(
+            username="root", password="ClaveRoot123!"
+        )
+        self.turno = Turno.objects.create(
+            nombre="Todo el día", hora_inicio=time(0, 0), hora_fin=time(23, 59, 59)
+        )
+        self.operador = Operador.objects.create(
+            nombre_completo="Ana Ruiz", cedula="1234567890"
+        )
+        self.producto = Producto.objects.create(nombre="Inicial", codigo="I")
+        self.color = Color.objects.create(nombre="Azul", codigo="A")
+        self.produccion = Produccion.objects.create(
+            fecha=timezone.localdate(),
+            turno=self.turno,
+            operador=self.operador,
+        )
+        self.detalle = DetalleProduccion.objects.create(
+            produccion=self.produccion,
+            producto=self.producto,
+            color=self.color,
+            cantidad_pacas=1,
+        )
+        Paca.objects.create(
+            detalle=self.detalle,
+            codigo_unico="I-A-00001-1",
+            lote=1,
+            numero_paca=1,
+        )
+
+    def test_admin_puede_eliminar_produccion(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.post(
+            reverse("produccion:produccion_eliminar", args=[self.produccion.id])
+        )
+
+        self.assertRedirects(response, reverse("produccion:lista"))
+        self.assertFalse(Produccion.objects.filter(pk=self.produccion.pk).exists())
+        self.assertFalse(Paca.objects.exists())
+
+    def test_admin_puede_borrar_historial(self):
+        self.client.force_login(self.admin)
+        Produccion.objects.create(
+            fecha=timezone.localdate(),
+            turno=self.turno,
+            operador=self.operador,
+        )
+
+        response = self.client.post(reverse("produccion:historial_eliminar"))
+
+        self.assertRedirects(response, reverse("produccion:lista"))
+        self.assertEqual(Produccion.objects.count(), 0)
+        self.assertFalse(Paca.objects.exists())
+
+    def test_staff_no_puede_eliminar_produccion(self):
+        staff = User.objects.create_user(
+            username="admin", password="ClaveAdmin123!", is_staff=True
+        )
+        self.client.force_login(staff)
+
+        response = self.client.post(
+            reverse("produccion:produccion_eliminar", args=[self.produccion.id])
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Produccion.objects.filter(pk=self.produccion.pk).exists())
+
+    def test_boton_eliminar_color_esta_dentro_de_un_form(self):
+        self.client.force_login(self.admin)
+
+        response = self.client.get(reverse("produccion:registrar"))
+        self.assertIn("no-store", response["Cache-Control"])
+
+        html = response.content.decode()
+        pos = html.index(
+            f'formaction="{reverse("produccion:color_eliminar", args=[self.color.id])}"'
+        )
+        segmento = html[html.rfind("<form", 0, pos):pos]
+
+        self.assertIn("csrfmiddlewaretoken", segmento)
+
+    def test_color_se_elimina_tras_borrar_produccion_y_parametros(self):
+        self.client.force_login(self.admin)
+        ParametroProduccion.objects.create(
+            color=self.color,
+            tipo_material="CARTON",
+            cantidad_por_paca=Decimal("0.5"),
+        )
+
+        self.client.post(reverse("produccion:historial_eliminar"))
+        response = self.client.post(
+            reverse("produccion:color_eliminar", args=[self.color.id])
+        )
+
+        self.assertRedirects(response, reverse("produccion:registrar"))
+        self.assertFalse(Color.objects.filter(pk=self.color.pk).exists())
+        self.assertFalse(ParametroProduccion.objects.exists())

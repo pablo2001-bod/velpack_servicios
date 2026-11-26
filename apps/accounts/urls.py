@@ -14,11 +14,7 @@ urlpatterns = [
     path('usuario/editar/<int:pk>/', views.editar_usuario, name='editar_usuario'),
     path('usuario/eliminar/<int:pk>/', views.eliminar_usuario, name='eliminar_usuario'),
 
-    # Turnos operativos y avisos internos
     path('turnos/nuevo/', views.crear_turno, name='crear_turno'),
     path('turnos/<int:pk>/editar/', views.editar_turno, name='editar_turno'),
     path('turnos/<int:pk>/eliminar/', views.eliminar_turno, name='eliminar_turno'),
-    path('avisos/', views.lista_avisos, name='lista_avisos'),
-    path('avisos/<int:pk>/leido/', views.marcar_aviso_leido, name='marcar_aviso_leido'),
-    path('avisos/leidos/', views.marcar_todos_leidos, name='marcar_todos_leidos'),
 ]

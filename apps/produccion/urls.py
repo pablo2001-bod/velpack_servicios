@@ -5,6 +5,12 @@ app_name = "produccion"
 
 urlpatterns = [
     path('lista/', views.lista_produccion, name='lista'),
+    path("lista/<int:id>/eliminar/", views.eliminar_produccion, name="produccion_eliminar"),
+    path(
+        "historial/eliminar/",
+        views.eliminar_historial_produccion,
+        name="historial_eliminar",
+    ),
     path("registrar/", views.gestionar_cronograma, name="registrar"),
     path("modelos/nuevo/", views.crear_modelo, name="modelo_crear"),
     path("modelos/<int:pk>/editar/", views.editar_modelo, name="modelo_editar"),

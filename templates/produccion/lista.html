@@ -14,7 +14,14 @@ Producción
                 Producción
             </h2>
         </div>
-        
+        {% if es_admin %}
+        <form method="post" action="{% url 'produccion:historial_eliminar' %}" onsubmit="return confirm('¿Eliminar todo el historial de producción?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-danger">
+                <i class="bi bi-trash3 me-1"></i>Borrar historial
+            </button>
+        </form>
+        {% endif %}
     </div>
     <div class="box shadow-sm rounded bg-white p-3">
         <div class="table-responsive">
@@ -85,6 +92,14 @@ Producción
                                     <a href="{% url 'produccion:etiquetas' prod.id %}" class="btn btn-sm btn-outline-dark" title="Imprimir etiquetas">
                                         <i class="bi bi-printer"></i>
                                     </a>
+                                    {% if es_admin %}
+                                    <form method="post" action="{% url 'produccion:produccion_eliminar' prod.id %}" class="d-inline" onsubmit="return confirm('¿Eliminar la producción #{{ prod.id }}?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar producción">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
                                 </div>
                             </td>
                         </tr>

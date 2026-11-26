@@ -1,8 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from apps.produccion.models import Operador
-
 # 1. Creamos el modelo Rol que te faltaba
 class Rol(models.Model):
     nombre = models.CharField(max_length=50, unique=True)
@@ -73,36 +71,3 @@ class PerfilUsuario(models.Model):
 
     def __str__(self):
         return f"{self.usuario.get_full_name()} ({self.codigo_operador})"
-
-
-class AvisoInterno(models.Model):
-    """Registro interno de ingresos al sistema para consulta del administrador."""
-
-    TIPOS = [
-        ("ingreso_usuario", "Ingreso de usuario"),
-        ("ingreso_operador", "Ingreso de operador"),
-    ]
-
-    tipo = models.CharField(max_length=30, choices=TIPOS)
-    titulo = models.CharField(max_length=150)
-    mensaje = models.TextField()
-    usuario = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="avisos"
-    )
-    operador = models.ForeignKey(
-        Operador,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="avisos",
-    )
-    creado_en = models.DateTimeField(auto_now_add=True)
-    leido = models.BooleanField(default=False)
-
-    class Meta:
-        ordering = ["-creado_en", "-id"]
-        verbose_name = "Aviso interno"
-        verbose_name_plural = "Avisos internos"
-
-    def __str__(self):
-        return self.titulo

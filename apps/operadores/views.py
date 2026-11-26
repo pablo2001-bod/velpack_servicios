@@ -8,7 +8,6 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from apps.accounts.models import AvisoInterno
 from apps.catalogos.models import Color, Producto
 from apps.produccion.labels import preparar_etiquetas
 from apps.produccion.models import (
@@ -124,16 +123,6 @@ def login_operador(request):
         # Se limpia el estado previo para forzar la selección al iniciar sesión.
         request.session.pop("color_id", None)
         request.session.pop("etiquetas_rango", None)
-
-        AvisoInterno.objects.create(
-            tipo="ingreso_operador",
-            titulo=f"Ingreso de operador: {operador.nombre_completo}",
-            mensaje=(
-                f"{operador.nombre_completo} inició turno '{turno.nombre}' el "
-                f"{timezone.localtime():%d/%m/%Y a las %H:%M}."
-            ),
-            operador=operador,
-        )
 
         return redirect("operadores:terminal_operador")
 

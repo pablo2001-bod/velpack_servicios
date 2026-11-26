@@ -11,7 +11,7 @@ from django.views.decorators.http import require_POST
 from apps.produccion.models import Operador, Turno
 
 from .forms import TurnoForm
-from .models import AvisoInterno, PerfilUsuario, Rol
+from .models import PerfilUsuario, Rol
 
 
 ROLES_USUARIO = {"operador", "usuario_normal", "superusuario"}
@@ -367,31 +367,3 @@ def eliminar_turno(request, pk):
     else:
         messages.success(request, "Turno eliminado correctamente.")
     return redirect("lista_usuarios")
-
-
-# ==========================================================
-# AVISOS INTERNOS
-# ==========================================================
-
-
-@_solo_superusuario
-def lista_avisos(request):
-    avisos = AvisoInterno.objects.select_related("usuario", "operador").all()
-    return render(request, "accounts/avisos.html", {"avisos": avisos})
-
-
-@_solo_superusuario
-@require_POST
-def marcar_aviso_leido(request, pk):
-    aviso = get_object_or_404(AvisoInterno, pk=pk)
-    aviso.leido = True
-    aviso.save(update_fields=["leido"])
-    return redirect("lista_avisos")
-
-
-@_solo_superusuario
-@require_POST
-def marcar_todos_leidos(request):
-    AvisoInterno.objects.filter(leido=False).update(leido=True)
-    messages.success(request, "Avisos marcados como leídos.")
-    return redirect("lista_avisos")
