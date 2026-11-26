@@ -31,6 +31,7 @@ class ColorAdmin(admin.ModelAdmin):
     list_display = (
         "nombre",
         "codigo",
+        "hex_color",
         "activo",
     )
 

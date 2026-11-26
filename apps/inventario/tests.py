@@ -62,3 +62,29 @@ class StockInventarioTests(TestCase):
         self.assertEqual(contexto["total_inicial"], 10)
         self.assertEqual(contexto["total_extragruesa"], 0)
         self.assertEqual(contexto["total_cubetas_especial"], 0)
+
+    def test_matriz_usa_colores_y_modelos_del_catalogo(self):
+        producto = Producto.objects.create(nombre="Cubeta Nueva", codigo="N")
+        color = Color.objects.create(
+            nombre="Rosado", codigo="R", hex_color="#ff00ff"
+        )
+        DetalleProduccion.objects.create(
+            produccion=self.produccion,
+            producto=producto,
+            color=color,
+            cantidad_pacas=4,
+        )
+
+        contexto = calcular_stock_inventario()
+        columnas = contexto["columnas_modelos"]
+        fila = next(item for item in contexto["filas_stock"] if item["nombre"] == "Rosado")
+        indice = next(
+            indice
+            for indice, columna in enumerate(columnas)
+            if columna["nombre"] == "Cubeta Nueva"
+        )
+
+        self.assertEqual(fila["color_hex"], "#ff00ff")
+        self.assertEqual(fila["valores"][indice], 4)
+        self.assertEqual(columnas[indice]["total"], 4)
+        self.assertEqual(contexto["total_general"], 14)

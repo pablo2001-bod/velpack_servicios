@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from django.db import models
 
 
@@ -40,6 +41,15 @@ class Color(models.Model):
     codigo = models.CharField(
         max_length=1,
         unique=True
+    )
+
+    hex_color = models.CharField(
+        max_length=7,
+        default="#2e7d32",
+        validators=[
+            RegexValidator(r"^#[0-9A-Fa-f]{6}$", "Ingrese un color hexadecimal válido.")
+        ],
+        verbose_name="Color en terminal",
     )
 
     activo = models.BooleanField(default=True)

@@ -1,8 +1,9 @@
 from datetime import time
 from decimal import Decimal
 
+from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
-from django.test import TestCase
+from django.test import RequestFactory, TestCase
 from django.urls import reverse
 from django.utils import timezone
 
@@ -19,6 +20,7 @@ from apps.produccion.models import (
     Produccion,
     Turno,
 )
+from apps.produccion.admin import ProduccionAdmin
 from apps.produccion.pdf import generar_archivo_pdf
 from apps.produccion.services import (
     generar_pacas,
@@ -164,6 +166,20 @@ class CronogramaAdminTests(TestCase):
         self.assertTrue(Producto.objects.filter(nombre="Cubeta Nueva", codigo="X").exists())
         self.assertTrue(Color.objects.filter(nombre="Rosado", codigo="R").exists())
 
+    def test_crear_color_guarda_hex_seleccionado(self):
+        response = self.client.post(
+            reverse("produccion:color_crear"),
+            {
+                "nombre": "Celeste",
+                "codigo": "c",
+                "hex_color": "#00bcd4",
+                "activo": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("produccion:registrar"))
+        self.assertEqual(Color.objects.get(nombre="Celeste").hex_color, "#00bcd4")
+
     def test_agregar_produccion_genera_pdf(self):
         producto = Producto.objects.create(nombre="Inicial", codigo="I")
         color = Color.objects.create(nombre="Amarillo", codigo="A")
@@ -189,6 +205,31 @@ class CronogramaAdminTests(TestCase):
         self.assertRedirects(response, reverse("produccion:registrar"))
         self.assertEqual(Paca.objects.count(), 5)
         self.assertTrue(ArchivoEtiquetas.objects.exists())
+
+    def test_agregar_produccion_ignora_fila_extra_vacia(self):
+        producto = Producto.objects.create(nombre="Inicial", codigo="I")
+        color = Color.objects.create(nombre="Amarillo", codigo="A")
+
+        response = self.client.post(
+            reverse("produccion:agregar_produccion"),
+            {
+                "operador": self.operador.id,
+                "observacion": "",
+                "items-TOTAL_FORMS": "2",
+                "items-INITIAL_FORMS": "0",
+                "items-MIN_NUM_FORMS": "1",
+                "items-MAX_NUM_FORMS": "1000",
+                "items-0-producto": producto.id,
+                "items-0-color": color.id,
+                "items-0-cantidad_pacas": "3",
+                "items-1-producto": "",
+                "items-1-color": "",
+                "items-1-cantidad_pacas": "",
+            },
+        )
+
+        self.assertRedirects(response, reverse("produccion:registrar"))
+        self.assertEqual(Paca.objects.count(), 3)
 
     def test_usuario_normal_no_puede_modificar_catalogos(self):
         usuario = User.objects.create_user(
@@ -325,3 +366,27 @@ class ParametrosProduccionTests(TestCase):
         )
         self.assertRedirects(response, reverse("produccion:parametros"))
         self.assertFalse(ParametroProduccion.objects.filter(pk=parametro.id).exists())
+
+
+class PermisosAdminProduccionTests(TestCase):
+    def setUp(self):
+        self.model_admin = ProduccionAdmin(Produccion, AdminSite())
+        self.request = RequestFactory().get("/admin/produccion/produccion/")
+
+    def test_solo_superusuario_puede_modificar_y_eliminar_produccion(self):
+        root = User.objects.create_superuser(
+            username="root", password="ClaveRoot123!"
+        )
+        otro_admin = User.objects.create_user(
+            username="admin", password="ClaveAdmin123!", is_staff=True
+        )
+
+        self.request.user = root
+        self.assertTrue(self.model_admin.has_add_permission(self.request))
+        self.assertTrue(self.model_admin.has_change_permission(self.request))
+        self.assertTrue(self.model_admin.has_delete_permission(self.request))
+
+        self.request.user = otro_admin
+        self.assertFalse(self.model_admin.has_add_permission(self.request))
+        self.assertFalse(self.model_admin.has_change_permission(self.request))
+        self.assertFalse(self.model_admin.has_delete_permission(self.request))

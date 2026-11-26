@@ -149,10 +149,9 @@ Inicio | Velpack
                 <thead>
                     <tr>
                         <th>Color</th>
-                        <th>Inicial</th>
-                        <th>Mediana</th>
-                        <th>Gruesa</th>
-                        <th>Extra Gruesa</th>
+                        {% for modelo in columnas_modelos %}
+                        <th>{{ modelo.nombre }}</th>
+                        {% endfor %}
                         <th>Total</th>
                     </tr>
                 </thead>
@@ -175,10 +174,9 @@ Inicio | Velpack
                 <tfoot>
                     <tr class="table-active fw-bold">
                         <td>TOTAL</td>
-                        <td>{{ total_inicial|default:"0" }}</td>
-                        <td>{{ total_mediana|default:"0" }}</td>
-                        <td>{{ total_gruesa|default:"0" }}</td>
-                        <td>{{ total_extragruesa|default:"0" }}</td>
+                        {% for modelo in columnas_modelos %}
+                        <td>{{ modelo.total|default:"0" }}</td>
+                        {% endfor %}
                         <td>{{ total_matriz|default:"0" }}</td>
                     </tr>
                 </tfoot>

@@ -35,7 +35,7 @@ Inventario | Velpack
                 <div class="kpi-body">
                     <span class="kpi-label">Modelos base</span>
                     <span class="kpi-value">{{ total_matriz|default:"0" }}</span>
-                    <span class="kpi-unit">inicial, mediana, gruesa y extra</span>
+                    <span class="kpi-unit">pacas disponibles</span>
                 </div>
             </div>
         </div>
@@ -60,10 +60,9 @@ Inventario | Velpack
                 <thead>
                     <tr>
                         <th>Color</th>
-                        <th>Inicial</th>
-                        <th>Mediana</th>
-                        <th>Gruesa</th>
-                        <th>Extra gruesa</th>
+                        {% for modelo in columnas_modelos %}
+                        <th>{{ modelo.nombre }}</th>
+                        {% endfor %}
                         <th>Total</th>
                     </tr>
                 </thead>
@@ -83,17 +82,16 @@ Inventario | Velpack
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">No hay colores configurados.</td>
+                        <td colspan="{{ columnas_modelos|length|add:2 }}" class="text-center text-muted py-4">No hay colores configurados.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
                 <tfoot>
                     <tr class="table-active fw-bold">
                         <td>TOTAL</td>
-                        <td>{{ total_inicial|default:"0" }}</td>
-                        <td>{{ total_mediana|default:"0" }}</td>
-                        <td>{{ total_gruesa|default:"0" }}</td>
-                        <td>{{ total_extragruesa|default:"0" }}</td>
+                        {% for modelo in columnas_modelos %}
+                        <td>{{ modelo.total|default:"0" }}</td>
+                        {% endfor %}
                         <td>{{ total_matriz|default:"0" }}</td>
                     </tr>
                 </tfoot>

@@ -39,7 +39,9 @@ COLORES_INTERFAZ = {
 
 
 def _color_hex(color):
-    return COLORES_INTERFAZ.get(color.nombre.strip().lower(), "#2e7d32")
+    return color.hex_color or COLORES_INTERFAZ.get(
+        color.nombre.strip().lower(), "#2e7d32"
+    )
 
 
 def _guardar_turno_en_sesion(request, turno, momento=None):
@@ -260,13 +262,12 @@ def terminal_operador(request):
             return redirect("operadores:terminal_operador")
 
         if pacas:
-            archivo_pdf = generar_archivo_pdf(
+            generar_archivo_pdf(
                 pacas,
                 f"Etiquetas terminal · {operador.nombre_completo}",
                 produccion=produccion,
                 base_url=request.build_absolute_uri("/"),
             )
-            request.session["ultimo_pdf_id"] = archivo_pdf.id
             # Rango compacto en sesión: evita guardar cientos de IDs.
             request.session["etiquetas_rango"] = {
                 "detalle_id": detalle.id,
@@ -319,7 +320,6 @@ def terminal_operador(request):
         "puede_cerrar_sesion": puede_cerrar_sesion,
         "cierre_automatico_en": cierre_automatico_en,
         "pacas_por_lote": ConfiguracionProduccion.obtener().pacas_por_lote,
-        "ultimo_pdf_id": request.session.get("ultimo_pdf_id"),
         "imprimir_ahora": request.session.pop("imprimir_ahora", False),
     }
     return render(request, "login_operadores/terminal_operador.html", context)

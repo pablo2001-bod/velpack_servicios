@@ -28,21 +28,32 @@ class TurnoAdmin(admin.ModelAdmin):
     list_filter = ("activo",)
 
 
+class SoloSuperuserAdminMixin:
+    def has_add_permission(self, request):
+        return request.user.is_superuser
+
+    def has_change_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+    def has_delete_permission(self, request, obj=None):
+        return request.user.is_superuser
+
+
 @admin.register(Produccion)
-class ProduccionAdmin(admin.ModelAdmin):
+class ProduccionAdmin(SoloSuperuserAdminMixin, admin.ModelAdmin):
     list_display = ("fecha", "turno", "operador", "total_pacas")
     list_filter = ("fecha", "turno")
     search_fields = ("operador__nombre_completo", "operador__cedula")
 
 
 @admin.register(DetalleProduccion)
-class DetalleProduccionAdmin(admin.ModelAdmin):
+class DetalleProduccionAdmin(SoloSuperuserAdminMixin, admin.ModelAdmin):
     list_display = ("produccion", "producto", "color", "cantidad_pacas")
     list_filter = ("producto", "color")
 
 
 @admin.register(Paca)
-class PacaAdmin(admin.ModelAdmin):
+class PacaAdmin(SoloSuperuserAdminMixin, admin.ModelAdmin):
     list_display = ("codigo_unico", "lote", "numero_paca", "detalle")
     search_fields = ("codigo_unico",)
     list_filter = ("lote",)

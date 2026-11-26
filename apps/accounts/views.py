@@ -102,7 +102,6 @@ def registrar_usuario(request):
         if not _clave_valida(request, password, username):
             return redirect("registrar_usuario")
 
-        es_superusuario = rol == "superusuario"
         with transaction.atomic():
             usuario = User.objects.create_user(
                 username=username,
@@ -110,7 +109,7 @@ def registrar_usuario(request):
                 password=password,
                 first_name=first_name,
                 last_name=last_name,
-                is_superuser=es_superusuario,
+                is_superuser=False,
                 is_staff=True,
             )
             _asignar_rol_perfil(usuario, rol)
@@ -242,12 +241,7 @@ def editar_usuario(request, pk):
             )
             return redirect("editar_usuario", pk=pk)
 
-        es_superusuario = rol == "superusuario"
-        if (
-            usuario_edit.is_superuser
-            and usuario_edit.is_active
-            and (not es_superusuario or not activo)
-        ):
+        if usuario_edit.is_superuser and usuario_edit.is_active and not activo:
             otros_superusuarios = User.objects.filter(
                 is_superuser=True, is_active=True
             ).exclude(pk=pk).count()
@@ -262,7 +256,6 @@ def editar_usuario(request, pk):
         usuario_edit.email = email
         usuario_edit.first_name = first_name
         usuario_edit.last_name = last_name
-        usuario_edit.is_superuser = es_superusuario
         usuario_edit.is_staff = True
         usuario_edit.is_active = activo
 

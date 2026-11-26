@@ -62,6 +62,42 @@ class SeguridadYAvisosTests(TestCase):
         self.assertTrue(User.objects.filter(username="nuevo").exists())
         self.assertTrue(User.objects.get(username="nuevo").is_staff)
 
+    def test_registro_como_administrador_no_crea_superusuario(self):
+        response = self.client.post(
+            reverse("registrar_usuario"),
+            {
+                "rol": "superusuario",
+                "username": "admin2",
+                "email": "admin2@example.com",
+                "password": "ClaveSegura123!",
+            },
+        )
+
+        self.assertRedirects(response, reverse("lista_usuarios"))
+        usuario = User.objects.get(username="admin2")
+        self.assertTrue(usuario.is_staff)
+        self.assertFalse(usuario.is_superuser)
+
+    def test_editar_no_promueve_a_superusuario(self):
+        usuario = User.objects.create_user(
+            username="admin3", password="ClaveSegura123!", is_staff=True
+        )
+
+        response = self.client.post(
+            reverse("editar_usuario", args=[usuario.id]),
+            {
+                "username": "admin3",
+                "email": "admin3@example.com",
+                "rol": "superusuario",
+                "activo": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("lista_usuarios"))
+        usuario.refresh_from_db()
+        self.assertTrue(usuario.is_staff)
+        self.assertFalse(usuario.is_superuser)
+
     def test_ingreso_genera_aviso_interno(self):
         self.client.logout()
         self.client.login(username="admin", password="ClaveAdmin123!")
@@ -188,14 +224,13 @@ class ValidacionesYSeguridadTests(TestCase):
         aviso.refresh_from_db()
         self.assertFalse(aviso.leido)
 
-    def test_no_puede_quitar_permisos_al_ultimo_admin(self):
+    def test_no_puede_desactivar_al_ultimo_admin(self):
         response = self.client.post(
             reverse("editar_usuario", args=[self.admin.id]),
             {
                 "username": "admin",
                 "email": "admin@example.com",
                 "rol": "usuario_normal",
-                "activo": "on",
             },
         )
 

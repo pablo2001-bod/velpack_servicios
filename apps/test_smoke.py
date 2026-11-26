@@ -247,7 +247,7 @@ class SmokeTests(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'id="marco-impresion"')
-        self.assertContains(response, "Descargar PDF")
+        self.assertNotContains(response, "Descargar PDF")
 
     def test_flujos_post(self):
         # Cliente

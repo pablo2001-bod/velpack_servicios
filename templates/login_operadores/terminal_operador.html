@@ -423,15 +423,6 @@
         </div>
     </section>
 
-    {% if ultimo_pdf_id %}
-    <div class="alert alert-light border d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
-        <span><i class="bi bi-file-earmark-pdf me-1"></i>Las etiquetas también se guardaron en PDF.</span>
-        <a href="{% url 'produccion:descargar_pdf' ultimo_pdf_id %}" class="btn btn-sm btn-outline-success">
-            <i class="bi bi-download me-1"></i>Descargar PDF
-        </a>
-    </div>
-    {% endif %}
-
     <section class="production-panel">
         <div class="section-title">
             <h2>Toque el modelo a registrar</h2>

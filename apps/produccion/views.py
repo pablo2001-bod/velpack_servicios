@@ -314,7 +314,10 @@ def registrar_produccion_admin(request):
                 try:
                     with transaction.atomic():
                         for item in items.cleaned_data:
-                            if item.get("DELETE"):
+                            if item.get("DELETE") or not all(
+                                item.get(campo)
+                                for campo in ("producto", "color", "cantidad_pacas")
+                            ):
                                 continue
                             _, pacas = registrar_pacas(
                                 produccion,
@@ -351,10 +354,8 @@ def registrar_produccion_admin(request):
     )
 
 
+@login_required(login_url="/login/")
 def descargar_pdf(request, id):
-    if not request.user.is_authenticated and not request.session.get("operador_id"):
-        return redirect("login")
-
     archivo = get_object_or_404(ArchivoEtiquetas, id=id)
     nombre = archivo.archivo.name.rsplit("/", 1)[-1]
     return FileResponse(

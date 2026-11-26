@@ -22,7 +22,9 @@ class TerminalOperadorTests(TestCase):
             nombre_completo="Ana Ruiz", cedula="1234567890"
         )
         cls.producto = Producto.objects.create(nombre="Cubeta Inicial", codigo="I")
-        cls.color = Color.objects.create(nombre="Amarillo", codigo="A")
+        cls.color = Color.objects.create(
+            nombre="Amarillo", codigo="A", hex_color="#ff5722"
+        )
         Turno.objects.create(
             nombre="Todo el día",
             hora_inicio=time(0, 0),
@@ -113,6 +115,7 @@ class TerminalOperadorTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Selecciona un color")
         self.assertContains(response, "color-grid")
+        self.assertContains(response, "#ff5722")
 
     def test_terminal_renderiza_modelos_con_color_elegido(self):
         session = self.client.session
@@ -174,7 +177,7 @@ class TerminalOperadorTests(TestCase):
         self.assertRedirects(response, reverse("operadores:login_operador"))
         self.assertNotIn("operador_id", self.client.session)
 
-    def test_registro_deja_enlace_de_descarga_pdf(self):
+    def test_registro_no_muestra_descarga_pdf_al_operador(self):
         session = self.client.session
         session["operador_id"] = self.operador.id
         session["color_id"] = self.color.id
@@ -186,5 +189,19 @@ class TerminalOperadorTests(TestCase):
             follow=True,
         )
 
-        self.assertContains(response, "Descargar PDF")
-        self.assertIsNotNone(self.client.session.get("ultimo_pdf_id"))
+        self.assertNotContains(response, "Descargar PDF")
+        self.assertIsNone(self.client.session.get("ultimo_pdf_id"))
+        self.assertTrue(ArchivoEtiquetas.objects.exists())
+
+    def test_operador_no_puede_descargar_pdf(self):
+        session = self.client.session
+        session["operador_id"] = self.operador.id
+        session.save()
+
+        response = self.client.get(
+            reverse("produccion:descargar_pdf", args=[1]),
+            follow=False,
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn("/login/", response["Location"])

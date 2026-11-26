@@ -100,9 +100,17 @@ class ModeloForm(forms.ModelForm):
 
 
 class ColorForm(forms.ModelForm):
+    hex_color = forms.RegexField(
+        regex=r"^#[0-9A-Fa-f]{6}$",
+        required=False,
+        widget=forms.TextInput(
+            attrs={"type": "color", "class": "form-control form-control-color"}
+        ),
+    )
+
     class Meta:
         model = Color
-        fields = ["nombre", "codigo", "activo"]
+        fields = ["nombre", "codigo", "hex_color", "activo"]
         widgets = {
             "nombre": forms.TextInput(attrs={"class": "form-control"}),
             "codigo": forms.TextInput(
@@ -113,6 +121,9 @@ class ColorForm(forms.ModelForm):
 
     def clean_codigo(self):
         return (self.cleaned_data["codigo"] or "").strip().upper()
+
+    def clean_hex_color(self):
+        return (self.cleaned_data.get("hex_color") or "#2e7d32").strip()
 
 
 class ConfiguracionProduccionForm(forms.ModelForm):
