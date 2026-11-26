@@ -246,14 +246,18 @@ def terminal_operador(request):
         producto = get_object_or_404(Producto, id=producto_id)
         color = get_object_or_404(Color, id=color_id, activo=True)
 
-        with transaction.atomic():
-            produccion, _ = Produccion.objects.get_or_create(
-                fecha=hoy,
-                operador=operador,
-                turno=turno_actual,
-                defaults={"observacion": ""},
-            )
-            detalle, pacas = registrar_pacas(produccion, producto, color, cantidad)
+        try:
+            with transaction.atomic():
+                produccion, _ = Produccion.objects.get_or_create(
+                    fecha=hoy,
+                    operador=operador,
+                    turno=turno_actual,
+                    defaults={"observacion": ""},
+                )
+                detalle, pacas = registrar_pacas(produccion, producto, color, cantidad)
+        except ValueError as error:
+            messages.error(request, str(error))
+            return redirect("operadores:terminal_operador")
 
         if pacas:
             archivo_pdf = generar_archivo_pdf(

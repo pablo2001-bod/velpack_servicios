@@ -3,10 +3,12 @@ from django.contrib import admin
 from .models import (
     ArchivoEtiquetas,
     ConfiguracionProduccion,
+    ConsumoMateriaPrima,
     CronogramaDiario,
     DetalleProduccion,
     Operador,
     Paca,
+    ParametroProduccion,
     Produccion,
     Turno,
 )
@@ -61,4 +63,19 @@ class ConfiguracionProduccionAdmin(admin.ModelAdmin):
 @admin.register(ArchivoEtiquetas)
 class ArchivoEtiquetasAdmin(admin.ModelAdmin):
     list_display = ("descripcion", "cantidad_pacas", "creado_en")
+    readonly_fields = ("creado_en",)
+
+
+@admin.register(ParametroProduccion)
+class ParametroProduccionAdmin(admin.ModelAdmin):
+    list_display = ("color", "tipo_material", "cantidad_por_paca", "activo")
+    list_filter = ("color", "tipo_material", "activo")
+    search_fields = ("color__nombre",)
+    ordering = ("color__nombre", "tipo_material")
+
+
+@admin.register(ConsumoMateriaPrima)
+class ConsumoMateriaPrimaAdmin(admin.ModelAdmin):
+    list_display = ("detalle", "tipo_material", "cantidad_kg", "creado_en")
+    list_filter = ("tipo_material",)
     readonly_fields = ("creado_en",)

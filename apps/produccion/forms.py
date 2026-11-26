@@ -6,6 +6,7 @@ from .models import (
     ConfiguracionProduccion,
     DetalleProduccion,
     Operador,
+    ParametroProduccion,
     Produccion,
 )
 
@@ -122,6 +123,20 @@ class ConfiguracionProduccionForm(forms.ModelForm):
             "pacas_por_lote": forms.NumberInput(
                 attrs={"class": "form-control", "min": 1}
             ),
+        }
+
+
+class ParametroProduccionForm(forms.ModelForm):
+    class Meta:
+        model = ParametroProduccion
+        fields = ["color", "tipo_material", "cantidad_por_paca", "activo"]
+        widgets = {
+            "color": forms.Select(attrs={"class": "form-select"}),
+            "tipo_material": forms.Select(attrs={"class": "form-select"}),
+            "cantidad_por_paca": forms.NumberInput(
+                attrs={"class": "form-control", "min": "0.001", "step": "0.001"}
+            ),
+            "activo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
         }
 
 

@@ -129,7 +129,7 @@ class ValidacionesYSeguridadTests(TestCase):
                 "rol": "usuario_normal",
                 "username": "nuevo",
                 "email": "nuevo@example.com",
-                "password": "nuevo123",
+                "password": "nuevo",
             },
             follow=True,
         )
@@ -141,11 +141,11 @@ class ValidacionesYSeguridadTests(TestCase):
         )
         self.assertEqual(
             contenido.count(
-                "La contraseña es demasiado corta. Debe contener por lo menos 10 caracteres."
+                "La contraseña es demasiado corta. Debe contener por lo menos 8 caracteres."
             ),
             1,
         )
-        self.assertContains(response, "Mínimo 10 caracteres")
+        self.assertContains(response, "Mínimo 8 caracteres")
 
     def test_registro_rechaza_rol_invalido(self):
         response = self.client.post(

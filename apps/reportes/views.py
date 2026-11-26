@@ -11,6 +11,7 @@ from apps.accounts.models import PerfilUsuario
 from apps.clientes.models import Cliente
 from apps.despachos.models import Despacho
 from apps.produccion.models import Paca
+from apps.produccion.services import obtener_stock_materia_prima
 from apps.proveedores.models import IngresoMateriaPrima, Proveedor
 from apps.transportes.models import Transporte
 from apps.ventas.models import Venta
@@ -123,6 +124,7 @@ def reporte_materia_prima(request):
     context = {
         "ingresos": ingresos.order_by("-id"),
         "total_kg": total_kg,
+        "resumen_materia_prima": obtener_stock_materia_prima(),
         "fecha_inicio": request.GET.get("fecha_inicio", ""),
         "fecha_fin": request.GET.get("fecha_fin", ""),
     }

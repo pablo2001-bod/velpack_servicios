@@ -1,8 +1,18 @@
+from decimal import Decimal
+
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils import timezone
 
 from apps.catalogos.models import Producto, Color
+from apps.proveedores.models import IngresoMateriaPrima
+
+
+TIPOS_INSUMO_PRODUCCION = tuple(
+    (clave, etiqueta)
+    for clave, etiqueta in IngresoMateriaPrima.TIPOS
+    if clave != "OTRO"
+)
 
 
 class Operador(models.Model):
@@ -263,3 +273,52 @@ class CronogramaDiario(models.Model):
 
     def __str__(self):
         return f"Cronograma {self.fecha} - {self.producto}"
+
+
+class ParametroProduccion(models.Model):
+    color = models.ForeignKey(
+        Color,
+        on_delete=models.PROTECT,
+        related_name="parametros_produccion",
+    )
+    tipo_material = models.CharField(max_length=30, choices=TIPOS_INSUMO_PRODUCCION)
+    cantidad_por_paca = models.DecimalField(
+        max_digits=10,
+        decimal_places=3,
+        validators=[MinValueValidator(Decimal("0.001"))],
+        verbose_name="Kg por paca",
+    )
+    activo = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "Parámetro de producción"
+        verbose_name_plural = "Parámetros de producción"
+        ordering = ["color__nombre", "tipo_material"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["color", "tipo_material"],
+                name="parametro_color_insumo_unico",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.color.nombre} · {self.get_tipo_material_display()}: {self.cantidad_por_paca} kg/paca"
+
+
+class ConsumoMateriaPrima(models.Model):
+    detalle = models.ForeignKey(
+        DetalleProduccion,
+        on_delete=models.CASCADE,
+        related_name="consumos_materia_prima",
+    )
+    tipo_material = models.CharField(max_length=30, choices=TIPOS_INSUMO_PRODUCCION)
+    cantidad_kg = models.DecimalField(max_digits=12, decimal_places=3)
+    creado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Consumo de materia prima"
+        verbose_name_plural = "Consumos de materia prima"
+        ordering = ["-creado_en", "-id"]
+
+    def __str__(self):
+        return f"{self.get_tipo_material_display()} - {self.cantidad_kg} kg"

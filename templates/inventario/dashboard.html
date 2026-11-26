@@ -110,20 +110,26 @@ Inventario | Velpack
                 <thead>
                     <tr>
                         <th>Tipo de material / insumo</th>
-                        <th class="text-end">Peso total acumulado</th>
+                        <th class="text-end">Ingresado</th>
+                        <th class="text-end">Consumido</th>
+                        <th class="text-end">Disponible</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in materia_prima_por_tipo %}
                     <tr>
-                        <td class="fw-semibold">{{ item.tipo_material }}</td>
+                        <td class="fw-semibold">{{ item.etiqueta }}</td>
+                        <td class="text-end">{{ item.ingresado|floatformat:2 }} kg</td>
+                        <td class="text-end">{{ item.consumido|floatformat:2 }} kg</td>
                         <td class="text-end">
-                            <span class="stock-pill">{{ item.total_peso|floatformat:2 }} kg</span>
+                            <span class="stock-pill {% if item.disponible <= 0 %}bg-danger-subtle text-danger{% endif %}">
+                                {{ item.disponible|floatformat:2 }} kg
+                            </span>
                         </td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="2" class="text-center text-muted py-4">No hay registros de materia prima.</td>
+                        <td colspan="4" class="text-center text-muted py-4">No hay registros de materia prima.</td>
                     </tr>
                     {% endfor %}
                 </tbody>

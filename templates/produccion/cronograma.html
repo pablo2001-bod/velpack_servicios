@@ -28,6 +28,9 @@ Cronograma de Producción - Velpack
                         <a href="{% url 'produccion:configuracion' %}" class="btn btn-outline-dark">
                             <i class="bi bi-gear me-1"></i>Lote: {{ configuracion.pacas_por_lote }}
                         </a>
+                        <a href="{% url 'produccion:parametros' %}" class="btn btn-outline-info">
+                            <i class="bi bi-sliders me-1"></i>Parámetros de producción
+                        </a>
                     </div>
                     {% endif %}
                 </div>

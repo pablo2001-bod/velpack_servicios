@@ -39,6 +39,12 @@
                        class="{% if '/produccion/buscar/' in request.path %}fw-bold text-success{% endif %}">
                         Buscar Código
                     </a>
+                    {% if user.is_superuser %}
+                    <a href="{% url 'produccion:parametros' %}"
+                       class="{% if '/produccion/parametros/' in request.path %}fw-bold text-success{% endif %}">
+                        Parámetros de Producción
+                    </a>
+                    {% endif %}
                 </div>
             </li>
 

@@ -31,6 +31,6 @@ class ComplejidadPasswordValidator:
 
     def get_help_text(self):
         return _(
-            "Debe tener al menos 10 caracteres e incluir mayúscula, minúscula, "
+            "Debe tener al menos 8 caracteres e incluir mayúscula, minúscula, "
             "número y carácter especial."
         )

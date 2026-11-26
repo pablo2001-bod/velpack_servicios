@@ -15,6 +15,7 @@ from .forms import (
     ConfiguracionProduccionForm,
     ItemsProduccionFormSet,
     ModeloForm,
+    ParametroProduccionForm,
     RegistroProduccionForm,
 )
 from .labels import preparar_etiquetas
@@ -23,10 +24,12 @@ from .models import (
     ConfiguracionProduccion,
     CronogramaDiario,
     Paca,
+    ParametroProduccion,
     Produccion,
 )
 from .pdf import generar_archivo_pdf
 from .services import (
+    obtener_stock_materia_prima,
     registrar_pacas,
     turno_en_curso,
 )
@@ -227,6 +230,70 @@ def configurar_produccion(request):
 
 
 @_solo_admin
+def lista_parametros(request):
+    return render(
+        request,
+        "produccion/parametros.html",
+        {
+            "parametros": ParametroProduccion.objects.select_related("color").all(),
+            "stock_materia_prima": obtener_stock_materia_prima(),
+        },
+    )
+
+
+@_solo_admin
+def crear_parametro(request):
+    if request.method == "POST":
+        form = ParametroProduccionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Parámetro de producción agregado correctamente.")
+            return redirect("produccion:parametros")
+    else:
+        form = ParametroProduccionForm()
+    return render(
+        request,
+        "produccion/catalogo_form.html",
+        {
+            "form": form,
+            "titulo": "Nuevo parámetro de producción",
+            "volver": "produccion:parametros",
+        },
+    )
+
+
+@_solo_admin
+def editar_parametro(request, pk):
+    parametro = get_object_or_404(ParametroProduccion, pk=pk)
+    if request.method == "POST":
+        form = ParametroProduccionForm(request.POST, instance=parametro)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Parámetro de producción actualizado correctamente.")
+            return redirect("produccion:parametros")
+    else:
+        form = ParametroProduccionForm(instance=parametro)
+    return render(
+        request,
+        "produccion/catalogo_form.html",
+        {
+            "form": form,
+            "titulo": "Editar parámetro de producción",
+            "volver": "produccion:parametros",
+        },
+    )
+
+
+@_solo_admin
+@require_POST
+def eliminar_parametro(request, pk):
+    parametro = get_object_or_404(ParametroProduccion, pk=pk)
+    parametro.delete()
+    messages.success(request, "Parámetro de producción eliminado correctamente.")
+    return redirect("produccion:parametros")
+
+
+@_solo_admin
 def registrar_produccion_admin(request):
     if request.method == "POST":
         form = RegistroProduccionForm(request.POST)
@@ -244,16 +311,25 @@ def registrar_produccion_admin(request):
                     defaults={"observacion": datos["observacion"]},
                 )
                 pacas_totales = []
-                for item in items.cleaned_data:
-                    if item.get("DELETE"):
-                        continue
-                    _, pacas = registrar_pacas(
-                        produccion,
-                        item["producto"],
-                        item["color"],
-                        item["cantidad_pacas"],
+                try:
+                    with transaction.atomic():
+                        for item in items.cleaned_data:
+                            if item.get("DELETE"):
+                                continue
+                            _, pacas = registrar_pacas(
+                                produccion,
+                                item["producto"],
+                                item["color"],
+                                item["cantidad_pacas"],
+                            )
+                            pacas_totales.extend(pacas)
+                except ValueError as error:
+                    messages.error(request, str(error))
+                    return render(
+                        request,
+                        "produccion/registrar_produccion.html",
+                        {"form": form, "items": items},
                     )
-                    pacas_totales.extend(pacas)
                 generar_archivo_pdf(
                     pacas_totales,
                     f"Etiquetas producción #{produccion.id}",

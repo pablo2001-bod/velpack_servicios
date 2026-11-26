@@ -1,11 +1,22 @@
 """Reglas de negocio compartidas del módulo de producción."""
 
 from datetime import datetime, time, timedelta
+from decimal import Decimal
 
 from django.db import transaction
+from django.db.models import Sum
 from django.utils import timezone
 
-from .models import ConfiguracionProduccion, DetalleProduccion, Paca, Turno
+from apps.proveedores.models import IngresoMateriaPrima
+
+from .models import (
+    ConsumoMateriaPrima,
+    ConfiguracionProduccion,
+    DetalleProduccion,
+    Paca,
+    ParametroProduccion,
+    Turno,
+)
 
 # El día operativo arranca a las 06:00 y no a la medianoche.
 HORA_CORTE = time(6, 0)
@@ -187,6 +198,96 @@ def generar_pacas(detalle, cantidad):
     return creadas
 
 
+def _sumar_decimales(valores):
+    return sum(valores, Decimal("0"))
+
+
+def _etiqueta_insumo(tipo_material):
+    return dict(IngresoMateriaPrima.TIPOS).get(tipo_material, tipo_material)
+
+
+def _total_ingresado(tipo_material, bloquear=False):
+    consulta = IngresoMateriaPrima.objects.filter(tipo_material=tipo_material)
+    if bloquear:
+        consulta = consulta.select_for_update()
+    return _sumar_decimales(
+        consulta.values_list("peso_neto", flat=True)
+    )
+
+
+def _total_consumido(tipo_material, bloquear=False):
+    consulta = ConsumoMateriaPrima.objects.filter(tipo_material=tipo_material)
+    if bloquear:
+        consulta = consulta.select_for_update()
+    return _sumar_decimales(
+        consulta.values_list("cantidad_kg", flat=True)
+    )
+
+
+def obtener_stock_materia_prima():
+    """Devuelve ingresos, consumos y saldo disponible por tipo de insumo."""
+    ingresos = {
+        item["tipo_material"]: item["total"] or Decimal("0")
+        for item in IngresoMateriaPrima.objects.values("tipo_material")
+        .annotate(total=Sum("peso_neto"))
+    }
+    consumos = {
+        item["tipo_material"]: item["total"] or Decimal("0")
+        for item in ConsumoMateriaPrima.objects.values("tipo_material")
+        .annotate(total=Sum("cantidad_kg"))
+    }
+
+    tipos = sorted(set(ingresos) | set(consumos))
+    return [
+        {
+            "tipo_material": tipo,
+            "etiqueta": _etiqueta_insumo(tipo),
+            "ingresado": ingresos.get(tipo, Decimal("0")),
+            "consumido": consumos.get(tipo, Decimal("0")),
+            "disponible": ingresos.get(tipo, Decimal("0"))
+            - consumos.get(tipo, Decimal("0")),
+        }
+        for tipo in tipos
+    ]
+
+
+def descontar_materia_prima(detalle, cantidad_pacas):
+    """Descuenta los insumos configurados para el color del detalle."""
+    parametros = ParametroProduccion.objects.filter(
+        color=detalle.color, activo=True
+    )
+    if not parametros or cantidad_pacas <= 0:
+        return []
+
+    requeridos = {}
+    for parametro in parametros:
+        requeridos[parametro.tipo_material] = (
+            requeridos.get(parametro.tipo_material, Decimal("0"))
+            + parametro.cantidad_por_paca * cantidad_pacas
+        )
+
+    consumos = []
+    for tipo_material, cantidad_kg in requeridos.items():
+        disponible = _total_ingresado(tipo_material, bloquear=True) - _total_consumido(
+            tipo_material, bloquear=True
+        )
+        if disponible < cantidad_kg:
+            raise ValueError(
+                f"Stock insuficiente de {_etiqueta_insumo(tipo_material)}: "
+                f"se requieren {cantidad_kg} kg y hay {disponible} kg disponibles."
+            )
+        consumos.append(
+            ConsumoMateriaPrima(
+                detalle=detalle,
+                tipo_material=tipo_material,
+                cantidad_kg=cantidad_kg,
+            )
+        )
+
+    ConsumoMateriaPrima.objects.bulk_create(consumos)
+    return consumos
+
+
 def registrar_pacas(produccion, producto, color, cantidad):
     """Registra un lote de pacas y devuelve el detalle y las pacas creadas."""
     with transaction.atomic():
@@ -196,6 +297,7 @@ def registrar_pacas(produccion, producto, color, cantidad):
             color=color,
             defaults={"cantidad_pacas": 0},
         )
+        descontar_materia_prima(detalle, cantidad)
         detalle.cantidad_pacas += cantidad
         detalle.save()
         pacas = generar_pacas(detalle, cantidad)
