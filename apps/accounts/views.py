@@ -303,17 +303,16 @@ def eliminar_usuario(request, pk):
             )
             return redirect("lista_usuarios")
 
+    usuario_id = usuario.pk
     username = usuario.username
     try:
         with transaction.atomic():
             usuario.delete()
     except (ProtectedError, IntegrityError):
-        usuario.refresh_from_db()
-        usuario.is_active = False
-        usuario.save(update_fields=["is_active"])
+        User.objects.filter(pk=usuario_id).update(is_active=False)
         messages.warning(
             request,
-            f"El usuario '{username}' tiene registros asociados: se desactivó.",
+            f"El usuario '{username}' no se puede borrar porque tiene registros asociados: se desactivó.",
         )
     else:
         messages.success(

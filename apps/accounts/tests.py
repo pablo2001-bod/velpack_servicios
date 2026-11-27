@@ -1,4 +1,7 @@
+from unittest.mock import patch
+
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
@@ -242,3 +245,17 @@ class ValidacionesYSeguridadTests(TestCase):
         usuario.refresh_from_db()
         self.assertFalse(usuario.is_active)
         self.assertTrue(PerfilUsuario.objects.filter(usuario=usuario).exists())
+
+    def test_eliminar_usuario_con_error_de_integridad_lo_desactiva(self):
+        usuario = User.objects.create_user(
+            username="vendedor2", password="ClaveSegura123!"
+        )
+
+        with patch.object(
+            User, "delete", side_effect=IntegrityError("FOREIGN KEY constraint failed")
+        ):
+            response = self.client.post(reverse("eliminar_usuario", args=[usuario.id]))
+
+        self.assertRedirects(response, reverse("lista_usuarios"))
+        usuario.refresh_from_db()
+        self.assertFalse(usuario.is_active)
