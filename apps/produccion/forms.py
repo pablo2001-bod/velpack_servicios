@@ -1,4 +1,7 @@
+from decimal import Decimal
+
 from django import forms
+from django.core.exceptions import ValidationError
 
 from apps.catalogos.models import Color, Producto
 
@@ -8,6 +11,7 @@ from .models import (
     Operador,
     ParametroProduccion,
     Produccion,
+    TIPOS_INSUMO_PRODUCCION_AGRUPADOS,
 )
 
 
@@ -137,18 +141,68 @@ class ConfiguracionProduccionForm(forms.ModelForm):
         }
 
 
-class ParametroProduccionForm(forms.ModelForm):
-    class Meta:
-        model = ParametroProduccion
-        fields = ["color", "tipo_material", "cantidad_por_paca", "activo"]
-        widgets = {
-            "color": forms.Select(attrs={"class": "form-select"}),
-            "tipo_material": forms.Select(attrs={"class": "form-select"}),
-            "cantidad_por_paca": forms.NumberInput(
-                attrs={"class": "form-control", "min": "0.001", "step": "0.001"}
-            ),
-            "activo": forms.CheckboxInput(attrs={"class": "form-check-input"}),
-        }
+class ParametroColorForm(forms.Form):
+    color = forms.ModelChoiceField(
+        queryset=Color.objects.all().order_by("nombre"),
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Color a producir",
+    )
+    activo = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label="Parámetros activos",
+    )
+
+
+class ParametroInsumoForm(forms.Form):
+    tipo_material = forms.ChoiceField(
+        choices=TIPOS_INSUMO_PRODUCCION_AGRUPADOS,
+        widget=forms.Select(attrs={"class": "form-select"}),
+        label="Material o insumo",
+    )
+    cantidad_por_paca = forms.DecimalField(
+        min_value=Decimal("0.001"),
+        max_digits=10,
+        decimal_places=3,
+        widget=forms.NumberInput(
+            attrs={"class": "form-control", "min": "0.001", "step": "0.001"}
+        ),
+        label="Kg por paca",
+    )
+    activo = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+        label="Activo",
+    )
+
+
+class BaseParametrosInsumosFormSet(forms.BaseFormSet):
+    def clean(self):
+        super().clean()
+        tipos = set()
+        for form in self.forms:
+            if not hasattr(form, "cleaned_data") or form.cleaned_data.get("DELETE"):
+                continue
+            tipo = form.cleaned_data.get("tipo_material")
+            if not tipo:
+                continue
+            if tipo in tipos:
+                form.add_error(
+                    "tipo_material", "Este insumo ya está cargado para el color."
+                )
+            tipos.add(tipo)
+
+
+ParametrosInsumosFormSet = forms.formset_factory(
+    ParametroInsumoForm,
+    formset=BaseParametrosInsumosFormSet,
+    extra=4,
+    min_num=1,
+    validate_min=True,
+    can_delete=True,
+)
 
 
 class ItemProduccionForm(forms.Form):

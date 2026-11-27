@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models.deletion import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -304,10 +304,21 @@ def eliminar_usuario(request, pk):
             return redirect("lista_usuarios")
 
     username = usuario.username
-    usuario.delete()
-    messages.success(
-        request, f"Usuario de acceso '{username}' eliminado correctamente."
-    )
+    try:
+        with transaction.atomic():
+            usuario.delete()
+    except (ProtectedError, IntegrityError):
+        usuario.refresh_from_db()
+        usuario.is_active = False
+        usuario.save(update_fields=["is_active"])
+        messages.warning(
+            request,
+            f"El usuario '{username}' tiene registros asociados: se desactivó.",
+        )
+    else:
+        messages.success(
+            request, f"Usuario de acceso '{username}' eliminado correctamente."
+        )
     return redirect("lista_usuarios")
 
 

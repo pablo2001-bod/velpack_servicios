@@ -180,6 +180,29 @@ class CronogramaAdminTests(TestCase):
         self.assertRedirects(response, reverse("produccion:registrar"))
         self.assertEqual(Color.objects.get(nombre="Celeste").hex_color, "#00bcd4")
 
+    def test_modelo_economico_se_gestiona_en_cronograma(self):
+        economico = Producto.objects.create(
+            nombre="Económica", codigo="E", es_segunda=True
+        )
+
+        html = self.client.get(reverse("produccion:registrar")).content.decode()
+
+        self.assertIn("Modelos económicos", html)
+        self.assertIn(reverse("produccion:modelo_editar", args=[economico.id]), html)
+        self.assertIn(reverse("produccion:modelo_eliminar", args=[economico.id]), html)
+        self.assertNotIn(f'id="prod_{economico.id}"', html)
+
+        response = self.client.post(
+            reverse("produccion:modelo_editar", args=[economico.id]),
+            {"nombre": "Económica 2", "codigo": "E"},
+        )
+
+        self.assertRedirects(response, reverse("produccion:registrar"))
+        economico.refresh_from_db()
+        self.assertEqual(economico.nombre, "Económica 2")
+        self.assertTrue(economico.es_segunda)
+        self.assertTrue(economico.activo)
+
     def test_agregar_produccion_genera_pdf(self):
         producto = Producto.objects.create(nombre="Inicial", codigo="I")
         color = Color.objects.create(nombre="Amarillo", codigo="A")
@@ -340,32 +363,96 @@ class ParametrosProduccionTests(TestCase):
         self.assertEqual(Paca.objects.count(), 2)
         self.assertEqual(ConsumoMateriaPrima.objects.count(), 0)
 
-    def test_admin_gestiona_parametros(self):
+    def test_admin_gestiona_varios_insumos_por_color(self):
         admin = User.objects.create_superuser(
             username="admin", password="ClaveAdmin123!"
         )
         self.client.force_login(admin)
 
-        response = self.client.get(reverse("produccion:parametros"))
-        self.assertEqual(response.status_code, 200)
+        response = self.client.get(reverse("produccion:parametro_crear"))
+        self.assertContains(response, "Materiales celulósicos")
+        self.assertContains(response, "Resinas")
+        self.assertContains(response, "AKD")
 
         response = self.client.post(
             reverse("produccion:parametro_crear"),
             {
                 "color": self.color.id,
-                "tipo_material": "TINTE_AMARILLO",
-                "cantidad_por_paca": "1.25",
                 "activo": "on",
+                "insumos-TOTAL_FORMS": "2",
+                "insumos-INITIAL_FORMS": "0",
+                "insumos-MIN_NUM_FORMS": "1",
+                "insumos-MAX_NUM_FORMS": "1000",
+                "insumos-0-tipo_material": "TINTE_AMARILLO",
+                "insumos-0-cantidad_por_paca": "1.25",
+                "insumos-0-activo": "on",
+                "insumos-1-tipo_material": "AKD",
+                "insumos-1-cantidad_por_paca": "0.5",
+                "insumos-1-activo": "on",
             },
         )
         self.assertRedirects(response, reverse("produccion:parametros"))
-        parametro = ParametroProduccion.objects.get(tipo_material="TINTE_AMARILLO")
+        self.assertEqual(ParametroProduccion.objects.filter(color=self.color).count(), 2)
+        self.assertEqual(
+            ParametroProduccion.objects.get(
+                color=self.color, tipo_material="TINTE_AMARILLO"
+            ).cantidad_por_paca,
+            Decimal("1.250"),
+        )
+        self.assertTrue(
+            ParametroProduccion.objects.filter(
+                color=self.color, tipo_material="AKD"
+            ).exists()
+        )
 
+        parametro = ParametroProduccion.objects.get(tipo_material="AKD")
         response = self.client.post(
             reverse("produccion:parametro_eliminar", args=[parametro.id])
         )
         self.assertRedirects(response, reverse("produccion:parametros"))
         self.assertFalse(ParametroProduccion.objects.filter(pk=parametro.id).exists())
+
+    def test_editar_parametros_quita_insumos_omitidos(self):
+        admin = User.objects.create_superuser(
+            username="admin2", password="ClaveAdmin123!"
+        )
+        self.client.force_login(admin)
+        primero = ParametroProduccion.objects.create(
+            color=self.color,
+            tipo_material="CARTON",
+            cantidad_por_paca=Decimal("2"),
+        )
+        ParametroProduccion.objects.create(
+            color=self.color,
+            tipo_material="DUPLEX",
+            cantidad_por_paca=Decimal("1"),
+        )
+
+        response = self.client.post(
+            reverse("produccion:parametro_editar", args=[primero.id]),
+            {
+                "color": self.color.id,
+                "activo": "on",
+                "insumos-TOTAL_FORMS": "2",
+                "insumos-INITIAL_FORMS": "2",
+                "insumos-MIN_NUM_FORMS": "1",
+                "insumos-MAX_NUM_FORMS": "1000",
+                "insumos-0-tipo_material": "CARTON",
+                "insumos-0-cantidad_por_paca": "3",
+                "insumos-0-activo": "on",
+                "insumos-1-tipo_material": "DUPLEX",
+                "insumos-1-cantidad_por_paca": "1",
+                "insumos-1-activo": "on",
+                "insumos-1-DELETE": "on",
+            },
+        )
+
+        self.assertRedirects(response, reverse("produccion:parametros"))
+        self.assertEqual(ParametroProduccion.objects.filter(color=self.color).count(), 1)
+        self.assertEqual(
+            ParametroProduccion.objects.get(color=self.color).cantidad_por_paca,
+            Decimal("3.000"),
+        )
 
 
 class PermisosAdminProduccionTests(TestCase):

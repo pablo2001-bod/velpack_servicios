@@ -11,6 +11,7 @@ from django.utils import timezone
 
 from apps.catalogos.models import Color, Producto
 from apps.despachos.models import DetalleDespacho
+from apps.proveedores.models import categoria_insumo
 from apps.ventas.models import DetalleVenta
 
 from .forms import (
@@ -18,7 +19,8 @@ from .forms import (
     ConfiguracionProduccionForm,
     ItemsProduccionFormSet,
     ModeloForm,
-    ParametroProduccionForm,
+    ParametroColorForm,
+    ParametrosInsumosFormSet,
     RegistroProduccionForm,
 )
 from .labels import preparar_etiquetas
@@ -99,6 +101,9 @@ def gestionar_cronograma(request):
         "produccion/cronograma.html",
         {
             "productos": productos,
+            "productos_economicos": Producto.objects.filter(es_segunda=True).order_by(
+                "nombre"
+            ),
             "colores": colores,
             "productos_seleccionados_ids": productos_seleccionados_ids,
             "fecha_hoy": hoy,
@@ -131,10 +136,15 @@ def crear_modelo(request):
 @_solo_admin
 def editar_modelo(request, pk):
     modelo = get_object_or_404(Producto, pk=pk)
+    es_economico = modelo.es_segunda
     if request.method == "POST":
         form = ModeloForm(request.POST, instance=modelo)
         if form.is_valid():
-            form.save()
+            modelo_actualizado = form.save(commit=False)
+            if es_economico:
+                modelo_actualizado.es_segunda = True
+                modelo_actualizado.activo = True
+            modelo_actualizado.save()
             messages.success(request, "Modelo actualizado correctamente.")
             return redirect("produccion:registrar")
     else:
@@ -247,13 +257,39 @@ def configurar_produccion(request):
     )
 
 
+def _guardar_parametros_insumos(color, activo_color, formset):
+    tipos = []
+    with transaction.atomic():
+        for fila in formset.cleaned_data:
+            if fila.get("DELETE"):
+                continue
+            tipo = fila["tipo_material"]
+            tipos.append(tipo)
+            ParametroProduccion.objects.update_or_create(
+                color=color,
+                tipo_material=tipo,
+                defaults={
+                    "cantidad_por_paca": fila["cantidad_por_paca"],
+                    "activo": activo_color and fila["activo"],
+                },
+            )
+        ParametroProduccion.objects.filter(color=color).exclude(
+            tipo_material__in=tipos
+        ).delete()
+
+
 @_solo_admin
 def lista_parametros(request):
+    parametros = list(
+        ParametroProduccion.objects.select_related("color").all().order_by("color__nombre")
+    )
+    for parametro in parametros:
+        parametro.categoria = categoria_insumo(parametro.tipo_material)
     return render(
         request,
         "produccion/parametros.html",
         {
-            "parametros": ParametroProduccion.objects.select_related("color").all(),
+            "parametros": parametros,
             "stock_materia_prima": obtener_stock_materia_prima(),
         },
     )
@@ -261,19 +297,20 @@ def lista_parametros(request):
 
 @_solo_admin
 def crear_parametro(request):
-    if request.method == "POST":
-        form = ParametroProduccionForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Parámetro de producción agregado correctamente.")
-            return redirect("produccion:parametros")
-    else:
-        form = ParametroProduccionForm()
+    form = ParametroColorForm(request.POST or None)
+    insumos = ParametrosInsumosFormSet(request.POST or None, prefix="insumos")
+    if request.method == "POST" and form.is_valid() and insumos.is_valid():
+        _guardar_parametros_insumos(
+            form.cleaned_data["color"], form.cleaned_data["activo"], insumos
+        )
+        messages.success(request, "Parámetros de producción agregados correctamente.")
+        return redirect("produccion:parametros")
     return render(
         request,
-        "produccion/catalogo_form.html",
+        "produccion/parametro_form.html",
         {
             "form": form,
+            "insumos": insumos,
             "titulo": "Nuevo parámetro de producción",
             "volver": "produccion:parametros",
         },
@@ -283,20 +320,41 @@ def crear_parametro(request):
 @_solo_admin
 def editar_parametro(request, pk):
     parametro = get_object_or_404(ParametroProduccion, pk=pk)
-    if request.method == "POST":
-        form = ParametroProduccionForm(request.POST, instance=parametro)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Parámetro de producción actualizado correctamente.")
-            return redirect("produccion:parametros")
-    else:
-        form = ParametroProduccionForm(instance=parametro)
+    parametros = ParametroProduccion.objects.filter(color=parametro.color).order_by(
+        "tipo_material"
+    )
+    initial = [
+        {
+            "tipo_material": item.tipo_material,
+            "cantidad_por_paca": item.cantidad_por_paca,
+            "activo": item.activo,
+        }
+        for item in parametros
+    ]
+    form = ParametroColorForm(
+        request.POST or None,
+        initial={
+            "color": parametro.color,
+            "activo": any(item.activo for item in parametros),
+        },
+    )
+    form.fields["color"].disabled = True
+    insumos = ParametrosInsumosFormSet(
+        request.POST or None, initial=initial, prefix="insumos"
+    )
+    if request.method == "POST" and form.is_valid() and insumos.is_valid():
+        _guardar_parametros_insumos(
+            form.cleaned_data["color"], form.cleaned_data["activo"], insumos
+        )
+        messages.success(request, "Parámetros de producción actualizados correctamente.")
+        return redirect("produccion:parametros")
     return render(
         request,
-        "produccion/catalogo_form.html",
+        "produccion/parametro_form.html",
         {
             "form": form,
-            "titulo": "Editar parámetro de producción",
+            "insumos": insumos,
+            "titulo": "Editar parámetros de producción",
             "volver": "produccion:parametros",
         },
     )

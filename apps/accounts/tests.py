@@ -3,7 +3,9 @@ from django.test import TestCase
 from django.urls import reverse
 
 from apps.accounts.models import PerfilUsuario
+from apps.clientes.models import Cliente
 from apps.produccion.models import Operador, Turno
+from apps.ventas.models import Venta
 
 
 class PerfilUsuarioTests(TestCase):
@@ -223,3 +225,20 @@ class ValidacionesYSeguridadTests(TestCase):
         self.assertRedirects(response, reverse("editar_usuario", args=[self.admin.id]))
         self.admin.refresh_from_db()
         self.assertTrue(self.admin.is_superuser)
+
+    def test_eliminar_usuario_con_ventas_lo_desactiva(self):
+        usuario = User.objects.create_user(
+            username="vendedor", password="ClaveSegura123!"
+        )
+        perfil = PerfilUsuario.obtener_o_crear_para(usuario)
+        cliente = Cliente.objects.create(
+            nombre="Cliente Prueba", ruc="0999999999001", direccion="Quito"
+        )
+        Venta.objects.create(numero_factura="F-001", cliente=cliente, usuario=perfil)
+
+        response = self.client.post(reverse("eliminar_usuario", args=[usuario.id]))
+
+        self.assertRedirects(response, reverse("lista_usuarios"))
+        usuario.refresh_from_db()
+        self.assertFalse(usuario.is_active)
+        self.assertTrue(PerfilUsuario.objects.filter(usuario=usuario).exists())

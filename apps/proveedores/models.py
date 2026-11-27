@@ -35,10 +35,13 @@ class IngresoMateriaPrima(models.Model):
     TIPOS = [
         ("CARTON", "Cartón"),
         ("DUPLEX", "Duplex"),
+        ("PAPEL", "Papel"),
         ("TINTE_MORADO", "Tinte Morado (1 Tonelada = 1000 kg)"),
         ("TINTE_VERDE", "Tinte Verde (1 Tonelada = 1000 kg)"),
         ("TINTE_AMARILLO", "Tinte Amarillo (Sacos de 25 kg)"),
         ("TINTE_ROJO", "Tinte Rojo (Sacos de 25 kg)"),
+        ("AKD", "AKD"),
+        ("PEGAMENTO", "Pegamento"),
         ("OTRO", "Otro"),
     ]
 
@@ -93,7 +96,7 @@ class IngresoMateriaPrima(models.Model):
         self.peso_vacio = self.peso_vacio or 0
         self.cantidad = self.cantidad or 0
 
-        if self.tipo_material in ["CARTON", "DUPLEX"]:
+        if self.tipo_material in ["CARTON", "DUPLEX", "PAPEL", "AKD", "PEGAMENTO"]:
             self.peso_neto = self.peso_cargado - self.peso_vacio
             self.cantidad = 0 # No usa cantidad por unidades
             
@@ -111,3 +114,34 @@ class IngresoMateriaPrima(models.Model):
 
     def __str__(self):
         return f"{self.get_tipo_material_display()} - {self.peso_neto} kg ({self.proveedor.nombre})"
+
+
+CATEGORIAS_INSUMOS = {
+    "Materiales celulósicos": ("CARTON", "DUPLEX", "PAPEL"),
+    "Colorantes": (
+        "TINTE_MORADO",
+        "TINTE_VERDE",
+        "TINTE_AMARILLO",
+        "TINTE_ROJO",
+    ),
+    "Resinas": ("AKD", "PEGAMENTO"),
+    "Otros": ("OTRO",),
+}
+
+
+def categoria_insumo(tipo_material):
+    for categoria, tipos in CATEGORIAS_INSUMOS.items():
+        if tipo_material in tipos:
+            return categoria
+    return "Otros"
+
+
+def tipos_insumos_agrupados():
+    etiquetas = dict(IngresoMateriaPrima.TIPOS)
+    return tuple(
+        (
+            categoria,
+            tuple((tipo, etiquetas[tipo]) for tipo in tipos),
+        )
+        for categoria, tipos in CATEGORIAS_INSUMOS.items()
+    )

@@ -81,6 +81,46 @@ Cronograma de Producción - Velpack
             <form method="POST" autocomplete="off">
                 {% csrf_token %}
                 <div class="border-top mt-4 pt-4">
+                    <h5 class="fw-bold mb-3">Modelos económicos</h5>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Modelo</th>
+                                    <th>Código</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for modelo in productos_economicos %}
+                                <tr>
+                                    <td class="fw-bold">{{ modelo.nombre }}</td>
+                                    <td>{{ modelo.codigo }}</td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="{% url 'produccion:modelo_editar' modelo.id %}" class="btn btn-sm btn-outline-primary" title="Editar modelo económico">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <button type="submit" formaction="{% url 'produccion:modelo_eliminar' modelo.id %}" formmethod="post" class="btn btn-sm btn-outline-danger" title="Eliminar modelo económico" onclick="return confirm('¿Eliminar el modelo económico {{ modelo.nombre }}?');">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3" class="text-center text-muted py-3">No hay modelos económicos registrados.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </form>
+            {% endif %}
+
+            {% if es_admin %}
+            <form method="POST" autocomplete="off">
+                {% csrf_token %}
+                <div class="border-top mt-4 pt-4">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5 class="fw-bold mb-0">Colores</h5>
                         <a href="{% url 'produccion:color_crear' %}" class="btn btn-sm btn-outline-primary">

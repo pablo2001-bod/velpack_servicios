@@ -5,14 +5,11 @@ from django.db import models
 from django.utils import timezone
 
 from apps.catalogos.models import Producto, Color
-from apps.proveedores.models import IngresoMateriaPrima
+from apps.proveedores.models import IngresoMateriaPrima, tipos_insumos_agrupados
 
 
-TIPOS_INSUMO_PRODUCCION = tuple(
-    (clave, etiqueta)
-    for clave, etiqueta in IngresoMateriaPrima.TIPOS
-    if clave != "OTRO"
-)
+TIPOS_INSUMO_PRODUCCION = tuple(IngresoMateriaPrima.TIPOS)
+TIPOS_INSUMO_PRODUCCION_AGRUPADOS = tipos_insumos_agrupados()
 
 
 class Operador(models.Model):
